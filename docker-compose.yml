@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: groupomania
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - groupomania-network
+
+  # Service utilisateurs
+  user-service:
+    build: ./user-service
+    ports:
+      - "3001:3001"
+    environment:
+      - USER_SERVICE_PORT=3001
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=groupomania
+      - DB_USER=postgres
+      - DB_PASS=password
+    depends_on:
+      - postgres
+    networks:
+      - groupomania-network
+
+  # Service publications
+  post-service:
+    build: ./post-service
+    ports:
+      - "3002:3002"
+    environment:
+      - POST_SERVICE_PORT=3002
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=groupomania
+      - DB_USER=postgres
+      - DB_PASS=password
+    depends_on:
+      - postgres
+    volumes:
+      - ./post-service/images:/app/images
+    networks:
+      - groupomania-network
+
+  # API Gateway
+  api-gateway:
+    build: ./api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - API_GATEWAY_PORT=3000
+    depends_on:
+      - user-service
+      - post-service
+    networks:
+      - groupomania-network
+
+volumes:
+  postgres_data:
+
+networks:
+  groupomania-network:
+    driver: bridge

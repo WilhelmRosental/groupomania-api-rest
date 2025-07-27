@@ -1,0 +1,18 @@
+/**
+ * Sequelize CLI configuration file
+ * Defines paths for Sequelize CLI commands (migrate, seed, etc.)
+ * Customizes default directory structure for better organization
+ */
+
+const path = require('path');
+
+module.exports = {
+  /** Path to database configuration file */
+  'config': path.resolve('config', 'config.json'),
+  /** Path to models directory */
+  'models-path': path.resolve('models'),
+  /** Path to seeders directory */
+  'seeders-path': path.resolve('seeders'),
+  /** Path to migrations directory */
+  'migrations-path': path.resolve('migrations')
+};

@@ -1,0 +1,51 @@
+{
+  "name": "groupomania-microservices",
+  "version": "1.0.0",
+  "description": "Groupomania API - Microservices Architecture",
+  "private": true,
+  "workspaces": [
+    "user-service",
+    "post-service",
+    "api-gateway"
+  ],
+  "scripts": {
+    "install:all": "npm install && cd user-service && npm install && cd ../post-service && npm install && cd ../api-gateway && npm install",
+    "setup:db": "node scripts/setup-databases.js",
+    "setup:db:user": "CREATE_USER=true node scripts/setup-databases.js",
+    "start:all": "concurrently \"npm run start:gateway\" \"npm run start:user\" \"npm run start:post\"",
+    "start:gateway": "cd api-gateway && npm start",
+    "start:user": "cd user-service && npm start",
+    "start:post": "cd post-service && npm start",
+    "dev:all": "concurrently \"npm run dev:gateway\" \"npm run dev:user\" \"npm run dev:post\"",
+    "dev:gateway": "cd api-gateway && npm run dev",
+    "dev:user": "cd user-service && npm run dev",
+    "dev:post": "cd post-service && npm run dev",
+    "db:migrate:all": "npm run db:migrate:user && npm run db:migrate:post",
+    "db:migrate:user": "cd user-service && npm run db:migrate",
+    "db:migrate:post": "cd post-service && npm run db:migrate",
+    "db:seed:all": "npm run db:seed:user",
+    "db:seed:user": "cd user-service && npm run db:seed",
+    "db:reset": "npm run db:migrate:undo:all && npm run db:migrate:all && npm run db:seed:all",
+    "db:migrate:undo:all": "cd user-service && npm run db:migrate:undo && cd ../post-service && npm run db:migrate:undo",
+    "test:all": "npm run test:user && npm run test:post && npm run test:gateway",
+    "test:user": "cd user-service && npm test",
+    "test:post": "cd post-service && npm test",
+    "test:gateway": "cd api-gateway && npm test"
+  },
+  "keywords": [
+    "microservices",
+    "api",
+    "fastify",
+    "social-network"
+  ],
+  "author": "Nathan Hallouin",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "pg": "^8.11.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  }
+}
