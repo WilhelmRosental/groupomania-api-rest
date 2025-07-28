@@ -10,31 +10,31 @@ import { UserSignupBody, UserLoginBody, UserUpdateBody, AuthenticatedRequest } f
 
 // Handler functions with proper return types
 const signupHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  userController.signup(request as FastifyRequest<{ Body: UserSignupBody }>, reply);
+  await userController.signup(request as FastifyRequest<{ Body: UserSignupBody }>, reply);
 };
 
 const loginHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  userController.login(request as FastifyRequest<{ Body: UserLoginBody }>, reply);
+  await userController.login(request as FastifyRequest<{ Body: UserLoginBody }>, reply);
 };
 
 const getProfileHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  userController.getProfile(request as AuthenticatedRequest, reply);
+  await userController.getProfile(request as AuthenticatedRequest, reply);
 };
 
 const updateProfileHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  userController.updateProfile(request as AuthenticatedRequest & { Body: UserUpdateBody }, reply);
+  await userController.updateProfile(request as AuthenticatedRequest & { Body: UserUpdateBody }, reply);
 };
 
 const updatePasswordHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  userController.updatePassword(request as AuthenticatedRequest & { Body: { password: string } }, reply);
+  await userController.updatePassword(request as AuthenticatedRequest & { Body: { password: string } }, reply);
 };
 
 const deleteAccountHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  userController.deleteAccount(request as AuthenticatedRequest, reply);
+  await userController.deleteAccount(request as AuthenticatedRequest, reply);
 };
 
 const getAllUsersHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  userController.getAllUsers(request as AuthenticatedRequest, reply);
+  await userController.getAllUsers(request as AuthenticatedRequest, reply);
 };
 
 export default async function userRoutes(fastify: FastifyInstance): Promise<void> {
@@ -53,7 +53,7 @@ export default async function userRoutes(fastify: FastifyInstance): Promise<void
       }
     }
   }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return signupHandler(request, reply);
+    return await signupHandler(request, reply);
   });
 
   fastify.post('/login', {
@@ -68,13 +68,13 @@ export default async function userRoutes(fastify: FastifyInstance): Promise<void
       }
     }
   }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return loginHandler(request, reply);
+    return await loginHandler(request, reply);
   });
 
   fastify.get('/profile', { 
     preHandler: [auth] 
   }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return getProfileHandler(request, reply);
+    return await getProfileHandler(request, reply);
   });
 
   fastify.put('/profile', { 
@@ -90,7 +90,7 @@ export default async function userRoutes(fastify: FastifyInstance): Promise<void
       }
     }
   }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return updateProfileHandler(request, reply);
+    return await updateProfileHandler(request, reply);
   });
 
   fastify.put('/password', { 
@@ -105,18 +105,18 @@ export default async function userRoutes(fastify: FastifyInstance): Promise<void
       }
     }
   }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return updatePasswordHandler(request, reply);
+    return await updatePasswordHandler(request, reply);
   });
 
   fastify.delete('/account', { 
     preHandler: [auth] 
   }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return deleteAccountHandler(request, reply);
+    return await deleteAccountHandler(request, reply);
   });
 
   fastify.get('/admin/users', { 
     preHandler: [auth] 
   }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return getAllUsersHandler(request, reply);
+    return await getAllUsersHandler(request, reply);
   });
 }

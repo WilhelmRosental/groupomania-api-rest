@@ -5,7 +5,6 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import jwt from 'jsonwebtoken';
-import { JWTPayload } from '../types';
 
 const JWT_SECRET = process.env.JWT_SECRET ?? 'your-secret-key';
 
@@ -21,18 +20,20 @@ export const auth = async (request: FastifyRequest, reply: FastifyReply): Promis
       const token = authHeader.substring(7); // Remove 'Bearer ' prefix
       
       try {
-        const decoded = jwt.verify(token, JWT_SECRET) as { userId: number; isAdmin?: boolean };
-        (request as any).userId = decoded.userId;
-        (request as any).isAdmin = decoded.isAdmin;
+        const decoded = jwt.verify(token, JWT_SECRET) as { userId?: number; isAdmin?: boolean };
         
         // Check if token and user are valid
-        if (!token || !decoded || !decoded.userId) {
+        if (!token || !decoded || typeof decoded.userId !== 'number') {
           return reply.status(401).send({
             success: false,
             message: 'Token invalide'
           });
         }
 
+        // Attach user info to request with proper typing
+        (request as FastifyRequest & { userId?: number; isAdmin?: boolean }).userId = decoded.userId;
+        (request as FastifyRequest & { userId?: number; isAdmin?: boolean }).isAdmin = decoded.isAdmin ?? false;
+        
       } catch {
         await reply.status(401).send({
           error: 'Invalid token.'
