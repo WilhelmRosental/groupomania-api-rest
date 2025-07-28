@@ -37,7 +37,7 @@ export class HealthChecker {
     for (const [name, checker] of this.dependencies) {
       try {
         const result = await checker();
-        if (typeof name === 'string' && name && Object.prototype.hasOwnProperty.call(dependencyResults, name) === false) {
+        if (typeof name === 'string' && name && !(name in dependencyResults)) {
           dependencyResults[name] = result;
         }
         
@@ -45,7 +45,7 @@ export class HealthChecker {
           overallStatus = 'degraded';
         }
       } catch (error) {
-        if (typeof name === 'string' && name && Object.prototype.hasOwnProperty.call(dependencyResults, name) === false) {
+        if (typeof name === 'string' && name && !(name in dependencyResults)) {
           dependencyResults[name] = {
             status: 'unhealthy',
             error: error instanceof Error ? error.message : 'Unknown error'
