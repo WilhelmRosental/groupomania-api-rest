@@ -13,7 +13,10 @@ export default [
             parserOptions: {
                 project: [
                     './tsconfig.json',
-                    './*/tsconfig.json',
+                    './api-gateway/tsconfig.json',
+                    './shared/tsconfig.json',
+                    './post-service/tsconfig.json',
+                    './user-service/tsconfig.json',
                     './scripts/tsconfig.json'
                 ]
             },
@@ -121,7 +124,8 @@ export default [
             'dist/',
             'node_modules/',
             'coverage/',
-            '*.js'
+            '*.js',
+            'shared/middleware/validation.d.ts'
         ]
     }
 ];
