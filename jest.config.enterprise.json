@@ -11,7 +11,9 @@
     "testMatch": [
         "**/__tests__/**/*.ts",
         "**/?(*.)+(spec|test).ts",
-        "**/?(*.)+(e2e).test.ts"
+        "**/?(*.)+(e2e).test.ts",
+        "!**/*.d.ts",
+        "!**/dist/**/*.d.ts"
     ],
     "transform": {
         "^.+\\.ts$": "ts-jest"
