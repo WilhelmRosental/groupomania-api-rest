@@ -59,10 +59,10 @@ async function buildPostApp(): Promise<FastifyInstance> {
   app.addHook('preHandler', async (request, reply): Promise<void> => {
     // Import dynamically to avoid circular dependencies
     try {
-      const validationModule = (await import('../../shared/dist/middleware/validation.js')) as {
+      const validationModule = (await import('@groupomania/shared/middleware/validation')) as {
         createValidationMiddleware?: (
           options: Record<string, unknown>
-        ) => (request: unknown, reply: unknown) => Promise<void>;
+        ) => (request: unknown, reply: unknown) => void;
       };
       const createValidationMiddleware = validationModule.createValidationMiddleware;
       if (typeof createValidationMiddleware === 'function') {
