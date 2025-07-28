@@ -27,8 +27,6 @@ export interface DatabaseConfig {
   };
 }
 
-import { Dialect } from 'sequelize';
-
 const config: DatabaseConfig = {
   database: process.env.USER_DB_NAME ?? 'groupomania_users',
   username: process.env.USER_DB_USER ?? 'postgres',

@@ -16,14 +16,14 @@ export const auth = async (request: FastifyRequest, reply: FastifyReply): Promis
   try {
     // Check authorization header
     const authHeader = request.headers.authorization;
-    if (authHeader?.startsWith('Bearer ')) {
+    if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7); // Remove 'Bearer ' prefix
       
       try {
         const decoded = jwt.verify(token, JWT_SECRET) as { userId?: number; isAdmin?: boolean };
         
         // Check if token and user are valid
-        if (!token || !decoded || typeof decoded.userId !== 'number') {
+        if (!token || typeof decoded.userId !== 'number') {
           return reply.status(401).send({
             success: false,
             message: 'Token invalide'

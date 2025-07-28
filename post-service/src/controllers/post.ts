@@ -6,7 +6,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { Post } from '../models';
 import { PostCreationAttributes, PaginationQuery } from '../types';
-import { createPostSchema, paginationQuerySchema, postIdSchema, userIdQuerySchema } from '../schemas/postSchemas';
+import { paginationQuerySchema, postIdSchema, userIdQuerySchema } from '../schemas/postSchemas';
 
 interface CreatePostRequest extends FastifyRequest {
   body: PostCreationAttributes;
@@ -35,20 +35,20 @@ export const postController = {
       const userId = String(request.userId);
       
       // Validate required fields
-      if (!title || typeof title !== 'string') {
-        return reply.status(400).send({ error: 'Title is required and must be a string' });
+      if (!title || typeof title !== 'string' || title.trim() === '') {
+        return reply.status(400).send({ error: 'Title is required and must be a non-empty string' });
       }
       
-    // Create post data
-    const postData: any = {
-      title,
-      content,
-      userId: parseInt(userId, 10),
-    };
-    
-    if (imageUrl) {
-      postData.imageUrl = imageUrl;
-    }
+      // Create post data with proper typing
+      const postData: PostCreationAttributes = {
+        title,
+        content,
+        userId: parseInt(userId, 10),
+      };
+      
+      if (typeof imageUrl === 'string' && imageUrl.trim() !== '') {
+        postData.imageUrl = imageUrl;
+      }
 
     // Create the post
     const post = await Post.create(postData);      reply.status(201).send({

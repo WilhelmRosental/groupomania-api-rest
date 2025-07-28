@@ -37,7 +37,7 @@ const getAllUsersHandler = async (request: FastifyRequest, reply: FastifyReply):
   await userController.getAllUsers(request as AuthenticatedRequest, reply);
 };
 
-export default async function userRoutes(fastify: FastifyInstance): Promise<void> {
+export default function userRoutes(fastify: FastifyInstance): void {
   // Register routes
   fastify.post('/api/auth/signup', {
     schema: {

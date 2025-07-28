@@ -10,7 +10,7 @@ export function createValidationMiddleware(_schemas: ValidationSchemas) {
   return (request: Record<string, unknown>, reply: { status: (code: number) => { send: (body: unknown) => void } }): void => {
     try {
       if (typeof request === 'object' && request !== null && 'body' in request && typeof (request as { body?: unknown }).body === 'object' && (request as { body?: unknown }).body !== null) {
-        const sanitizedBody = JSON.parse(JSON.stringify((request as { body: unknown }).body));
+        const sanitizedBody = JSON.parse(JSON.stringify((request as { body: unknown }).body)) as Record<string, unknown>;
         (request as { body: unknown }).body = sanitizedBody;
       }
     } catch (error) {
