@@ -2,10 +2,10 @@
  * Database configuration for user service
  */
 
+import dotenv from 'dotenv';
+
 // Try to load dotenv if available
 try {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const dotenv = require('dotenv') as { config: () => void };
   dotenv.config();
 } catch {
   // dotenv not available, use environment variables directly
@@ -18,7 +18,7 @@ export interface DatabaseConfig {
   host: string;
   port: number;
   dialect: 'postgres';
-  logging: boolean | Function;
+  logging: boolean | ((...args: unknown[]) => void);
   pool: {
     max: number;
     min: number;
@@ -26,6 +26,8 @@ export interface DatabaseConfig {
     idle: number;
   };
 }
+
+import { Dialect } from 'sequelize';
 
 const config: DatabaseConfig = {
   database: process.env.USER_DB_NAME ?? 'groupomania_users',

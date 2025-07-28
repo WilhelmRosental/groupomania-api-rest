@@ -12,7 +12,7 @@ const sequelize = new Sequelize(
   config.password,
   {
     host: config.host,
-    dialect: config.dialect,
+    dialect: config.dialect as 'postgres',
     logging: (config.logging === true) ? console.error : false,
     define: {
       freezeTableName: true,

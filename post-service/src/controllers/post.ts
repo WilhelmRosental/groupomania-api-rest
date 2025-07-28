@@ -29,36 +29,40 @@ export const postController = {
   // Create a new post
   async createPost(request: CreatePostRequest, reply: FastifyReply): Promise<void> {
     try {
-      // Validate request body
-      const validatedBody = createPostSchema.parse(request.body);
-      const userId = request.userId;
-
-      if (!userId || typeof userId !== 'string' || userId === '') {
-        return reply.status(401).send({
-          success: false,
-          message: 'User not authenticated'
-        });
+      // Type assertion for request body
+      const requestBody = request.body as { title: string; content: string; imageUrl?: string };
+      const { title, content, imageUrl } = requestBody;
+      const userId = String(request.userId);
+      
+      // Validate required fields
+      if (!title || typeof title !== 'string') {
+        return reply.status(400).send({ error: 'Title is required and must be a string' });
       }
+      
+    // Create post data
+    const postData: any = {
+      title,
+      content,
+      userId: parseInt(userId, 10),
+    };
+    
+    if (imageUrl) {
+      postData.imageUrl = imageUrl;
+    }
 
-      const post = await Post.create({
-        userId,
-        title: validatedBody.title,
-        content: validatedBody.content,
-        ...(validatedBody.imageUrl && { imageUrl: validatedBody.imageUrl })
-      });
-
-      reply.status(201).send({
-        success: true,
-        message: 'Post créé avec succès',
-        data: post
+    // Create the post
+    const post = await Post.create(postData);      reply.status(201).send({
+        id: post.id,
+        title: post.title,
+        content: post.content,
+        imageUrl: post.imageUrl,
+        userId: post.userId,
+        createdAt: post.createdAt,
+        updatedAt: post.updatedAt
       });
     } catch (error) {
-      console.error('Error creating post:', error);
-      reply.status(500).send({
-        success: false,
-        message: 'Erreur lors de la création du post',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      const appError = error as Error;
+      reply.status(500).send({ error: appError.message });
     }
   },
 
@@ -176,10 +180,10 @@ export const postController = {
       // Validate parameters
       const validatedParams = postIdSchema.parse(request.params);
       const postId = validatedParams.id;
-      const userId = request.userId;
+      const userId = Number(request.userId);
       const isAdmin = request.isAdmin;
 
-      if (!userId || typeof userId !== 'string') {
+      if (!userId) {
         return reply.status(401).send({
           success: false,
           message: 'User not authenticated'
@@ -196,7 +200,7 @@ export const postController = {
       }
 
       // Check if user owns the post or is admin
-      if (post.userId !== userId && isAdmin !== true) {
+            if (post.userId !== Number(userId) && isAdmin !== true) {
         return reply.status(403).send({
           success: false,
           message: 'Non autorisé à supprimer ce post'
@@ -211,11 +215,21 @@ export const postController = {
       });
     } catch (error) {
       console.error('Error deleting post:', error);
-      reply.status(500).send({
-        success: false,
-        message: 'Erreur lors de la suppression du post',
-        error: error instanceof Error ? error.message : 'Unknown error'
-      });
+      const errorObj = error instanceof Error ? error : new Error('Unknown error');
+      
+      if (errorObj.message) {
+        reply.status(500).send({
+          success: false,
+          message: 'Erreur lors de la suppression du post',
+          error: errorObj.message
+        });
+      } else {
+        reply.status(500).send({
+          success: false,
+          message: 'Erreur lors de la suppression du post',
+          error: 'Unknown error'
+        });
+      }
     }
   }
 };

@@ -15,4 +15,12 @@ declare global {
   }
 }
 
+// Fastify module augmentation
+declare module 'fastify' {
+  interface FastifyRequest {
+    userId?: string;
+    isAdmin?: boolean;
+  }
+}
+
 export {};

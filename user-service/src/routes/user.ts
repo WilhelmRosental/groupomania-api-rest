@@ -6,88 +6,117 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { userController } from '../controllers/user';
 import { auth } from '../middleware/auth';
-import { signupSchema, loginSchema, updateProfileSchema, updatePasswordSchema } from '../schemas/userSchemas';
 import { UserSignupBody, UserLoginBody, UserUpdateBody, AuthenticatedRequest } from '../types';
 
-// Define proper route handlers with correct types
-async function signupHandler(request: FastifyRequest<{ Body: UserSignupBody }>, reply: FastifyReply) {
-  return userController.signup(request, reply);
-}
+// Handler functions with proper return types
+const signupHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  userController.signup(request as FastifyRequest<{ Body: UserSignupBody }>, reply);
+};
 
-async function loginHandler(request: FastifyRequest<{ Body: UserLoginBody }>, reply: FastifyReply) {
-  return userController.login(request, reply);
-}
+const loginHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  userController.login(request as FastifyRequest<{ Body: UserLoginBody }>, reply);
+};
 
-async function getProfileHandler(request: AuthenticatedRequest, reply: FastifyReply) {
-  return userController.getProfile(request, reply);
-}
+const getProfileHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  userController.getProfile(request as AuthenticatedRequest, reply);
+};
 
-async function updateProfileHandler(request: AuthenticatedRequest & { Body: UserUpdateBody }, reply: FastifyReply) {
-  return userController.updateProfile(request, reply);
-}
+const updateProfileHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  userController.updateProfile(request as AuthenticatedRequest & { Body: UserUpdateBody }, reply);
+};
 
-async function updatePasswordHandler(request: AuthenticatedRequest & { Body: { password: string } }, reply: FastifyReply) {
-  return userController.updatePassword(request, reply);
-}
+const updatePasswordHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  userController.updatePassword(request as AuthenticatedRequest & { Body: { password: string } }, reply);
+};
 
-async function deleteAccountHandler(request: AuthenticatedRequest, reply: FastifyReply) {
-  return userController.deleteAccount(request, reply);
-}
+const deleteAccountHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  userController.deleteAccount(request as AuthenticatedRequest, reply);
+};
 
-async function getAllUsersHandler(request: AuthenticatedRequest, reply: FastifyReply) {
-  return userController.getAllUsers(request, reply);
-}
+const getAllUsersHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+  userController.getAllUsers(request as AuthenticatedRequest, reply);
+};
 
-export default async function userRoutes(fastify: FastifyInstance) {
-  fastify.post('/signup', {
+export default async function userRoutes(fastify: FastifyInstance): Promise<void> {
+  // Register routes
+  fastify.post('/api/auth/signup', {
     schema: {
-      body: signupSchema
+      body: {
+        type: 'object',
+        required: ['email', 'password', 'firstName', 'lastName'],
+        properties: {
+          email: { type: 'string' },
+          password: { type: 'string' },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' }
+        }
+      }
     }
-  }, async (request, reply) => {
-    return userController.signup(request as FastifyRequest<{ Body: UserSignupBody }>, reply);
+  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return signupHandler(request, reply);
   });
 
   fastify.post('/login', {
     schema: {
-      body: loginSchema
+      body: {
+        type: 'object',
+        required: ['email', 'password'],
+        properties: {
+          email: { type: 'string', format: 'email' },
+          password: { type: 'string', minLength: 1 }
+        }
+      }
     }
-  }, async (request, reply) => {
-    return userController.login(request as FastifyRequest<{ Body: UserLoginBody }>, reply);
+  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return loginHandler(request, reply);
   });
 
   fastify.get('/profile', { 
     preHandler: [auth] 
-  }, async (request, reply) => {
-    return userController.getProfile(request as AuthenticatedRequest, reply);
+  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return getProfileHandler(request, reply);
   });
 
   fastify.put('/profile', { 
     preHandler: [auth],
     schema: {
-      body: updateProfileSchema
+      body: {
+        type: 'object',
+        properties: {
+          firstName: { type: 'string', minLength: 2, maxLength: 50 },
+          lastName: { type: 'string', minLength: 2, maxLength: 50 },
+          email: { type: 'string', format: 'email', minLength: 5, maxLength: 100 }
+        }
+      }
     }
-  }, async (request, reply) => {
-    return userController.updateProfile(request as AuthenticatedRequest & { Body: UserUpdateBody }, reply);
+  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return updateProfileHandler(request, reply);
   });
 
   fastify.put('/password', { 
     preHandler: [auth],
     schema: {
-      body: updatePasswordSchema
+      body: {
+        type: 'object',
+        required: ['password'],
+        properties: {
+          password: { type: 'string', minLength: 8, maxLength: 128 }
+        }
+      }
     }
-  }, async (request, reply) => {
-    return userController.updatePassword(request as AuthenticatedRequest & { Body: { password: string } }, reply);
+  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return updatePasswordHandler(request, reply);
   });
 
   fastify.delete('/account', { 
     preHandler: [auth] 
-  }, async (request, reply) => {
-    return userController.deleteAccount(request as AuthenticatedRequest, reply);
+  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return deleteAccountHandler(request, reply);
   });
 
   fastify.get('/admin/users', { 
     preHandler: [auth] 
-  }, async (request, reply) => {
-    return userController.getAllUsers(request as AuthenticatedRequest, reply);
+  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+    return getAllUsersHandler(request, reply);
   });
 }

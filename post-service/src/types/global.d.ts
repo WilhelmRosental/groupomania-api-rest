@@ -18,7 +18,7 @@ declare global {
 // Fastify module augmentation
 declare module 'fastify' {
   interface FastifyRequest {
-    userId?: number;
+    userId?: string;
     isAdmin?: boolean;
   }
 }

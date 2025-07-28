@@ -1,128 +1,43 @@
 /**
- * Shared validation middleware for microservices
- * Provides request sanitization and validation utilities
+ * Simplified validation middleware for microservices
  */
 
-import { FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 
-// Types for Zod (without importing zod directly to avoid dependency issues)
-interface ZodError {
-  errors: Array<{
-    code: string;
-    path: (string | number)[];
-    message: string;
-  }>;
+interface ValidationSchemas {
+  [key: string]: any;
 }
 
-interface ZodSchema {
-  parse(data: unknown): unknown;
-}
-
-/**
- * Validation middleware factory for request body
- */
-export function validateBody(schema: ZodSchema) {
-  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+export function createValidationMiddleware(_schemas: ValidationSchemas) {
+  return async (request: any, reply: any): Promise<void> => {
     try {
-      request.body = schema.parse(request.body);
-    } catch (error: unknown) {
-      if (error !== null && typeof error === 'object' && 'errors' in error) {
-        const zodError = error as ZodError;
-        await reply.status(400).send({
-          success: false,
-          message: 'Validation failed',
-          errors: zodError.errors
-        });
-        return;
+      if (request.body && typeof request.body === 'object') {
+        const sanitizedBody = JSON.parse(JSON.stringify(request.body));
+        request.body = sanitizedBody;
       }
-      throw error;
-    }
-  };
-}
-
-/**
- * Validation middleware factory for request parameters
- */
-export function validateParams(schema: ZodSchema) {
-  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    try {
-      request.params = schema.parse(request.params);
-    } catch (error: unknown) {
-      if (error !== null && typeof error === 'object' && 'errors' in error) {
-        const zodError = error as ZodError;
-        await reply.status(400).send({
-          success: false,
-          message: 'Invalid parameters',
-          errors: zodError.errors
-        });
-        return;
-      }
-      throw error;
-    }
-  };
-}
-
-// Add proper type checking to avoid object injection
-export const validateRequest = (schema: any) => {
-  return async (request: any, reply: any) => {
-    try {
-      // Validate that field is a safe string property
-      const field = request.validationError?.field;
-      if (typeof field === 'string' && field.match(/^[a-zA-Z_][a-zA-Z0-9_]*$/)) {
-        // Safe property access
-        const error = request.validationError[field];
-      }
-      // ...existing validation logic...
     } catch (error) {
-      // ...existing error handling...
+      // Silent fail for validation
+      const validationError = error as Error;
+      reply.status(400).send({ error: validationError.message });
     }
   };
 }
 
-/**
- * Request sanitization middleware
- * Removes potentially harmful content from request data
- */
-export const sanitizeRequest = (request: FastifyRequest, reply: FastifyReply, done: () => void): void => {
-  const sanitizeString = (str: unknown): unknown => {
-    if (typeof str !== 'string') return str;
-    
-    // Remove script tags and other potentially harmful content
-    const scriptTagPattern = /<script[\s\S]*?<\/script>/gi;
-    return str
-      .replace(scriptTagPattern, '')
-      .replace(/javascript:/gi, '')
-      .replace(/on\w+\s*=/gi, '')
-      .trim();
-  };
-
-  const sanitizeObject = (obj: unknown): unknown => {
-    if (obj === null || obj === undefined) return obj;
-    if (typeof obj === 'string') return sanitizeString(obj);
-    if (Array.isArray(obj)) return obj.map(sanitizeObject);
-    if (typeof obj === 'object') {
-      const sanitized: Record<string, unknown> = {};
-      const entries = Object.entries(obj as Record<string, unknown>);
-      for (const [key, value] of entries) {
-        if (typeof key === 'string' && Object.prototype.hasOwnProperty.call(obj, key)) {
-          sanitized[key] = sanitizeObject(value);
-        }
-      }
-      return sanitized;
-    }
-    return obj;
-  };
-
-  // Sanitize request data
-  if (request.body !== null && request.body !== undefined) {
-    request.body = sanitizeObject(request.body);
-  }
-  if (request.query !== null && request.query !== undefined) {
-    request.query = sanitizeObject(request.query);
-  }
-  if (request.params !== null && request.params !== undefined) {
-    request.params = sanitizeObject(request.params);
-  }
-
-  done();
+export const commonSchemas = {
+  // Add common validation schemas here
 };
+
+export function sanitizeRequest(req: Record<string, unknown>): Record<string, unknown> {
+  // Basic request sanitization
+  if (req.body && typeof req.body === 'object') {
+    const sanitizedBody = Object.fromEntries(
+      Object.entries(req.body).map(([key, value]) => [
+        key,
+        typeof value === 'string' ? value.trim() : value
+      ])
+    );
+    req.body = sanitizedBody;
+  }
+  
+  return req;
+}

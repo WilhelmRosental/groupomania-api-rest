@@ -24,7 +24,9 @@ export class HealthChecker {
   }
 
   addDependency(name: string, checker: () => Promise<HealthCheck>): void {
-    this.dependencies.set(name, checker);
+    if (typeof name === 'string' && name) {
+      this.dependencies.set(name, checker);
+    }
   }
 
   async checkHealth(): Promise<HealthStatus> {

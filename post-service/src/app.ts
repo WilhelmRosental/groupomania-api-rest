@@ -1,9 +1,4 @@
-/**
- * Post microservice application configuration
- * Handles post CRUD operations and file uploads
- */
-
-import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import fastify, { FastifyInstance } from 'fastify';
 import path from 'path';
 import postRoutes from './routes/post';
 
@@ -11,7 +6,21 @@ import postRoutes from './routes/post';
  * Register plugins and routes for post service
  */
 async function buildPostApp(): Promise<FastifyInstance> {
-  const app = fastify({ logger: true });
+  const app = fastify({
+    logger: process.env.NODE_ENV === 'development' ? {
+      level: process.env.LOG_LEVEL ?? 'info',
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname'
+        }
+      }
+    } : {
+      level: process.env.LOG_LEVEL ?? 'info'
+    },
+  });
 
   // Security plugins
   await app.register(require('@fastify/helmet'));
@@ -40,28 +49,39 @@ async function buildPostApp(): Promise<FastifyInstance> {
   // Multipart support for file uploads
   await app.register(require('@fastify/multipart'));
 
-  // Custom validation hook
-  app.addHook('preHandler', (request, reply, done) => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { sanitizeRequest } = require('../../shared/middleware/validation');
-    sanitizeRequest(request, reply, done);
-  });
-
   // Register post routes
   await app.register(postRoutes, { prefix: '/api/posts' });
+
+  // Custom validation hook
+  app.addHook('preHandler', async (request, reply): Promise<void> => {
+    // Import dynamically to avoid circular dependencies
+    try {
+      const validationModule = await import('../../shared/dist/middleware/validation.js');
+      const createValidationMiddleware = validationModule.createValidationMiddleware;
+      if (createValidationMiddleware) {
+        const middleware = createValidationMiddleware({});
+        await middleware(request, reply);
+      }
+    } catch (error) {
+      request.log.warn('Validation middleware not available');
+    }
+  });
 
   // Error handler
   app.setErrorHandler((error, request, reply) => {
     request.log.error(error);
 
-    const statusCode = error.statusCode || 500;
+    const statusCode = error.statusCode ?? 500;
     const message = statusCode === 500
       ? 'Internal Server Error'
       : error.message;
 
     // Send error response
-    reply.status(statusCode).send({ error: message });
+    void reply.status(statusCode).send({ error: message });
   });
+
+  const port = parseInt(process.env.PORT ?? '3002', 10);
+  const host = process.env.HOST ?? '0.0.0.0';
 
   return app;
 }

@@ -2,6 +2,7 @@
   "name": "groupomania-microservices",
   "version": "1.0.0",
   "description": "Groupomania API - Enterprise Microservices Architecture",
+  "type": "module",
   "private": true,
   "workspaces": [
     "user-service",
