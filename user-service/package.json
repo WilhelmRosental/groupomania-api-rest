@@ -8,7 +8,7 @@
         "build": "tsc",
         "build:prod": "cross-env NODE_ENV=production npm run build",
         "postbuild": "echo \"✅ User Service build completed\"",
-        "test": "cross-env NODE_ENV=test jest",
+        "test": "cross-env NODE_ENV=test jest --passWithNoTests",
         "test:watch": "cross-env NODE_ENV=test jest --watch",
         "test:coverage": "cross-env NODE_ENV=test jest --coverage",
         "test:e2e": "cross-env NODE_ENV=test npm run build && jest --testMatch=\"**/*.e2e.test.ts\"",

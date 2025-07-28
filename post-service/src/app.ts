@@ -56,13 +56,15 @@ async function buildPostApp(): Promise<FastifyInstance> {
   app.addHook('preHandler', async (request, reply): Promise<void> => {
     // Import dynamically to avoid circular dependencies
     try {
-      const validationModule = await import('../../shared/dist/middleware/validation.js');
+      const validationModule = await import('../../shared/dist/middleware/validation.js') as {
+        createValidationMiddleware?: (options: Record<string, unknown>) => (request: unknown, reply: unknown) => Promise<void>;
+      };
       const createValidationMiddleware = validationModule.createValidationMiddleware;
-      if (createValidationMiddleware) {
+      if (typeof createValidationMiddleware === 'function') {
         const middleware = createValidationMiddleware({});
         await middleware(request, reply);
       }
-    } catch (error) {
+    } catch {
       request.log.warn('Validation middleware not available');
     }
   });
@@ -77,11 +79,8 @@ async function buildPostApp(): Promise<FastifyInstance> {
       : error.message;
 
     // Send error response
-    void reply.status(statusCode).send({ error: message });
+    reply.status(statusCode).send({ error: message });
   });
-
-  const port = parseInt(process.env.PORT ?? '3002', 10);
-  const host = process.env.HOST ?? '0.0.0.0';
 
   return app;
 }
