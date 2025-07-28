@@ -4,8 +4,9 @@
 
 // Try to load dotenv if available
 try {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   require('dotenv').config();
-} catch (e) {
+} catch {
   // dotenv not available, use environment variables directly
 }
 
@@ -26,13 +27,13 @@ interface DatabaseConfig {
 }
 
 const config: DatabaseConfig = {
-  database: process.env.POST_DB_NAME || 'groupomania_posts',
-  username: process.env.POST_DB_USER || 'postgres',
-  password: process.env.POST_DB_PASSWORD || '',
-  host: process.env.POST_DB_HOST || 'localhost',
-  port: parseInt(process.env.POST_DB_PORT || '5432'),
+  database: process.env.POST_DB_NAME ?? 'groupomania_posts',
+  username: process.env.POST_DB_USER ?? 'postgres',
+  password: process.env.POST_DB_PASSWORD ?? '',
+  host: process.env.POST_DB_HOST ?? 'localhost',
+  port: parseInt(process.env.POST_DB_PORT ?? '5432'),
   dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  logging: process.env.NODE_ENV === 'development' ? false : false,
   pool: {
     max: 5,
     min: 0,

@@ -3,7 +3,7 @@
  * Sequelize models for the post microservice
  */
 
-import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
+import { Sequelize, DataTypes, Model } from 'sequelize';
 import config from '../config/config';
 import { PostAttributes, PostCreationAttributes } from '../types';
 

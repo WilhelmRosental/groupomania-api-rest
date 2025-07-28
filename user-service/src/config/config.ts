@@ -4,8 +4,10 @@
 
 // Try to load dotenv if available
 try {
-  require('dotenv').config();
-} catch (e) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const dotenv = require('dotenv') as { config: () => void };
+  dotenv.config();
+} catch {
   // dotenv not available, use environment variables directly
 }
 
@@ -26,13 +28,13 @@ export interface DatabaseConfig {
 }
 
 const config: DatabaseConfig = {
-  database: process.env.USER_DB_NAME || 'groupomania_users',
-  username: process.env.USER_DB_USER || 'postgres',
-  password: process.env.USER_DB_PASSWORD || '',
-  host: process.env.USER_DB_HOST || 'localhost',
-  port: parseInt(process.env.USER_DB_PORT || '5432', 10),
+  database: process.env.USER_DB_NAME ?? 'groupomania_users',
+  username: process.env.USER_DB_USER ?? 'postgres',
+  password: process.env.USER_DB_PASSWORD ?? '',
+  host: process.env.USER_DB_HOST ?? 'localhost',
+  port: parseInt(process.env.USER_DB_PORT ?? '5432', 10),
   dialect: 'postgres',
-  logging: process.env.NODE_ENV === 'development' ? console.log : false,
+  logging: process.env.NODE_ENV === 'development' ? console.error : false,
   pool: {
     max: 5,
     min: 0,

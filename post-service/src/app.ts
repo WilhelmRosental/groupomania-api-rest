@@ -41,9 +41,9 @@ async function buildPostApp(): Promise<FastifyInstance> {
   await app.register(require('@fastify/multipart'));
 
   // Custom validation hook
-  app.addHook('preHandler', async (request, reply) => {
-    const { sanitizeRequest } = require('../../shared/middleware/validation');
-    sanitizeRequest(request, reply, () => {});
+  app.addHook('preHandler', (request, reply, done) => {
+    const { sanitizeRequest } = require('../../shared/middleware/validation') as { sanitizeRequest: (req: any, rep: any, callback: () => void) => void };
+    sanitizeRequest(request, reply, done);
   });
 
   // Register post routes

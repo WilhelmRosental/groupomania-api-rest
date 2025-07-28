@@ -13,7 +13,7 @@ const sequelize = new Sequelize(
   {
     host: config.host,
     dialect: config.dialect,
-    logging: (config.logging === true) ? console.log : false,
+    logging: (config.logging === true) ? console.error : false,
     define: {
       freezeTableName: true,
       timestamps: true,

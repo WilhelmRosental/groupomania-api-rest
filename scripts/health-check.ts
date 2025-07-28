@@ -7,12 +7,6 @@
 
 import { Client } from 'pg';
 import http from 'http';
-// Configuration simplifiée pour les scripts
-const config = {
-  API_GATEWAY_PORT: parseInt(process.env.API_GATEWAY_PORT || '3000'),
-  USER_SERVICE_PORT: parseInt(process.env.USER_SERVICE_PORT || '3001'),
-  POST_SERVICE_PORT: parseInt(process.env.POST_SERVICE_PORT || '3002')
-};
 
 interface ServiceConfig {
   name: string;
@@ -27,45 +21,39 @@ interface HealthStatus {
   error?: string;
 }
 
-interface ServiceCheck {
-  name: string;
-  url: string;
-  port: number;
-}
-
 // Configuration des services
 const services: ServiceConfig[] = [
   {
     name: 'API Gateway',
-    url: `http://localhost:${process.env.API_GATEWAY_PORT || '3000'}/health`,
+    url: `http://localhost:${process.env.API_GATEWAY_PORT ?? '3000'}/health`,
     timeout: 5000
   },
   {
     name: 'User Service',
-    url: `http://localhost:${process.env.USER_SERVICE_PORT || '3001'}/health`,
+    url: `http://localhost:${process.env.USER_SERVICE_PORT ?? '3001'}/health`,
     timeout: 5000
   },
   {
     name: 'Post Service',
-    url: `http://localhost:${process.env.POST_SERVICE_PORT || '3002'}/health`,
+    url: `http://localhost:${process.env.POST_SERVICE_PORT ?? '3002'}/health`,
     timeout: 5000
   }
 ];
 
 // Configuration de la base de données
 const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || 'password',
-  database: process.env.DB_NAME || 'groupomania',
+  host: process.env.DB_HOST ?? 'localhost',
+  port: parseInt(process.env.DB_PORT ?? '5432'),
+  user: process.env.DB_USER ?? 'postgres',
+  password: process.env.DB_PASSWORD ?? 'password',
+  database: process.env.DB_NAME ?? 'groupomania',
   connectionTimeoutMillis: 5000
 };
 
 /**
  * Vérifie l'état d'un service HTTP
  */
-async function checkServiceHealth(service: ServiceConfig): Promise<HealthStatus> {
+function checkServiceHealth(service: ServiceConfig): Promise<HealthStatus> {
   return new Promise((resolve) => {
     const startTime = Date.now();
     
@@ -83,7 +71,7 @@ async function checkServiceHealth(service: ServiceConfig): Promise<HealthStatus>
           service: service.name,
           status: 'unhealthy',
           responseTime,
-          error: `HTTP ${res.statusCode}`
+          error: `HTTP ${res.statusCode ?? 'unknown'}`
         });
       }
     });
@@ -124,11 +112,12 @@ async function checkDatabaseHealth(): Promise<HealthStatus> {
       status: 'healthy',
       responseTime
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       service: 'PostgreSQL Database',
       status: 'unhealthy',
-      error: error.message
+      error: errorMessage
     };
   } finally {
     try {
@@ -143,8 +132,8 @@ async function checkDatabaseHealth(): Promise<HealthStatus> {
  * Effectue le health check complet
  */
 async function performHealthCheck(): Promise<void> {
-  console.log('🔍 Groupomania Health Check');
-  console.log('================================');
+  console.error('🔍 Groupomania Health Check');
+  console.error('================================');
   
   const startTime = Date.now();
   const healthChecks: Promise<HealthStatus>[] = [
@@ -161,29 +150,30 @@ async function performHealthCheck(): Promise<void> {
     
     results.forEach(result => {
       const statusIcon = result.status === 'healthy' ? '✅' : '❌';
-      const responseInfo = result.responseTime ? ` (${result.responseTime}ms)` : '';
-      const errorInfo = result.error ? ` - ${result.error}` : '';
+      const responseInfo = result.responseTime !== undefined ? ` (${result.responseTime}ms)` : '';
+      const errorInfo = result.error !== undefined ? ` - ${result.error}` : '';
       
-      console.log(`${statusIcon} ${result.service}${responseInfo}${errorInfo}`);
+      console.error(`${statusIcon} ${result.service}${responseInfo}${errorInfo}`);
       
       if (result.status !== 'healthy') {
         allHealthy = false;
       }
     });
     
-    console.log('================================');
-    console.log(`🕐 Total check time: ${totalTime}ms`);
+    console.error('================================');
+    console.error(`🕐 Total check time: ${totalTime}ms`);
     
     if (allHealthy) {
-      console.log('🎉 All services are healthy!');
+      console.error('🎉 All services are healthy!');
       process.exit(0);
     } else {
-      console.log('⚠️  Some services are unhealthy');
+      console.error('⚠️  Some services are unhealthy');
       process.exit(1);
     }
     
-  } catch (error: any) {
-    console.error('❌ Health check failed:', error.message);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('❌ Health check failed:', errorMessage);
     process.exit(1);
   }
 }

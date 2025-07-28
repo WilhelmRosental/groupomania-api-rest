@@ -53,16 +53,16 @@ export function validateConfig(): Config {
 export const config = validateConfig();
 
 // Utilitaires de configuration
-export const isDevelopment = () => config.NODE_ENV === 'development';
-export const isProduction = () => config.NODE_ENV === 'production';
-export const isTest = () => config.NODE_ENV === 'test';
+export const isDevelopment = (): boolean => config.NODE_ENV === 'development';
+export const isProduction = (): boolean => config.NODE_ENV === 'production';
+export const isTest = (): boolean => config.NODE_ENV === 'test';
 
 // Configuration de base de données
-export const getDatabaseUrl = () =>
+export const getDatabaseUrl = (): string =>
   `postgresql://${config.DB_USER}:${config.DB_PASSWORD}@${config.DB_HOST}:${config.DB_PORT}/${config.DB_NAME}`;
 
 // Configuration du logger
-export const getLoggerConfig = () => ({
+export const getLoggerConfig = (): { level: string; transport?: { target: string; options: { colorize: boolean; translateTime: string; ignore: string } } } => ({
   level: config.LOG_LEVEL,
   transport: isDevelopment() ? {
     target: 'pino-pretty',

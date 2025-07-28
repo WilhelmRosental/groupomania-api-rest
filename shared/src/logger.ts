@@ -20,7 +20,7 @@ export const requestLogger = {
   logger: logger,
   loggerInstance: logger,
   stream: {
-    write: (message: string) => {
+    write: (message: string): void => {
       logger.info(message.trim());
     },
   },

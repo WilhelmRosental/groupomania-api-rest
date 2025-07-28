@@ -81,10 +81,10 @@ class MetricsCollector {
 export const metricsCollector = new MetricsCollector();
 
 // Middleware function for Fastify
-export const metricsMiddleware = async (request: any, reply: any) => {
+export const metricsMiddleware = (request: unknown, reply: { statusCode: number; addHook: (event: string, handler: () => void) => void }): void => {
   const start = Date.now();
   
-  reply.addHook('onSend', async () => {
+  reply.addHook('onSend', () => {
     const responseTime = Date.now() - start;
     const success = reply.statusCode < 400;
     

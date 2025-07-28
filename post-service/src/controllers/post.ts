@@ -5,7 +5,7 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { Post } from '../models';
-import { PostCreationAttributes, PaginationQuery, PostQuery } from '../types';
+import { PostCreationAttributes, PaginationQuery } from '../types';
 import { createPostSchema, paginationQuerySchema, postIdSchema, userIdQuerySchema } from '../schemas/postSchemas';
 
 interface CreatePostRequest extends FastifyRequest {
@@ -33,7 +33,7 @@ export const postController = {
       const validatedBody = createPostSchema.parse(request.body);
       const userId = request.userId;
 
-      if (!userId) {
+      if (typeof userId !== 'string' || userId === '') {
         return reply.status(401).send({
           success: false,
           message: 'User not authenticated'
@@ -179,7 +179,7 @@ export const postController = {
       const userId = request.userId;
       const isAdmin = request.isAdmin;
 
-      if (!userId) {
+      if (typeof userId !== 'string') {
         return reply.status(401).send({
           success: false,
           message: 'User not authenticated'
@@ -196,7 +196,7 @@ export const postController = {
       }
 
       // Check if user owns the post or is admin
-      if (post.userId !== userId && !isAdmin) {
+      if (post.userId !== userId && isAdmin !== true) {
         return reply.status(403).send({
           success: false,
           message: 'Non autorisé à supprimer ce post'

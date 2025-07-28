@@ -16,15 +16,15 @@ interface DatabaseConfig {
 }
 
 const config: DatabaseConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_NAME || 'groupomania'
+  host: process.env.DB_HOST ?? 'localhost',
+  port: parseInt(process.env.DB_PORT ?? '5432'),
+  user: process.env.DB_USER ?? 'postgres',
+  password: process.env.DB_PASSWORD ?? '',
+  database: process.env.DB_NAME ?? 'groupomania'
 };
 
-async function setupDatabases() {
-  console.log('🔧 Configuration de la base de données...');
+async function setupDatabases(): Promise<void> {
+  console.error('🔧 Configuration de la base de données...');
   
   try {
     // Connexion à PostgreSQL (base postgres par défaut)
@@ -37,7 +37,7 @@ async function setupDatabases() {
     });
 
     await client.connect();
-    console.log('✅ Connexion à PostgreSQL réussie');
+    console.error('✅ Connexion à PostgreSQL réussie');
 
     // Vérifier si la base existe
     const dbExists = await client.query(
@@ -48,9 +48,9 @@ async function setupDatabases() {
     if (dbExists.rows.length === 0) {
       // Créer la base de données
       await client.query(`CREATE DATABASE "${config.database}"`);
-      console.log(`✅ Base de données "${config.database}" créée`);
+      console.error(`✅ Base de données "${config.database}" créée`);
     } else {
-      console.log(`✅ Base de données "${config.database}" existe déjà`);
+      console.error(`✅ Base de données "${config.database}" existe déjà`);
     }
 
     // Si CREATE_USER est défini, créer un utilisateur dédié
@@ -66,16 +66,16 @@ async function setupDatabases() {
           ENCRYPTED PASSWORD '${config.password}'
           CREATEDB
         `);
-        console.log('✅ Utilisateur groupomania_user créé');
+        console.error('✅ Utilisateur groupomania_user créé');
       }
 
       // Donner les permissions
       await client.query(`GRANT ALL PRIVILEGES ON DATABASE "${config.database}" TO groupomania_user`);
-      console.log('✅ Permissions accordées');
+      console.error('✅ Permissions accordées');
     }
 
     await client.end();
-    console.log('🎉 Configuration de la base de données terminée');
+    console.error('🎉 Configuration de la base de données terminée');
 
   } catch (error) {
     console.error('❌ Erreur lors de la configuration:', error);
@@ -84,9 +84,9 @@ async function setupDatabases() {
 }
 
 // Vérifier que le mot de passe est fourni
-if (!config.password) {
+if (config.password.length === 0) {
   console.error('❌ Erreur: DB_PASSWORD est requis');
-  console.log('Usage: DB_PASSWORD="votre_mot_de_passe" npm run setup:db');
+  console.error('Usage: DB_PASSWORD="votre_mot_de_passe" npm run setup:db');
   process.exit(1);
 }
 

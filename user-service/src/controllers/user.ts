@@ -11,9 +11,7 @@ import {
   UserSignupBody, 
   UserLoginBody, 
   UserUpdateBody, 
-  AuthenticatedRequest,
-  ApiResponse,
-  JwtPayload
+  AuthenticatedRequest
 } from '../types';
 
 interface UserController {
@@ -100,9 +98,9 @@ export const userController: UserController = {
       const token = jwt.sign(
         { 
           userId: user.id,
-          isAdmin: user.isAdmin || false
+          isAdmin: user.isAdmin ?? false
         },
-        process.env.JWT_SECRET || 'your-secret-key',
+        process.env.JWT_SECRET ?? 'your-secret-key',
         { expiresIn: '24h' }
       );
 
@@ -163,7 +161,8 @@ export const userController: UserController = {
   // Update user profile
   async updateProfile(request: AuthenticatedRequest & { Body: UserUpdateBody }, reply: FastifyReply): Promise<void> {
     try {
-      const { firstName, lastName, email } = (request as any).body;
+      const requestWithBody = request as AuthenticatedRequest & { body: UserUpdateBody };
+      const { firstName, lastName, email } = requestWithBody.body;
       const userId = request.user.id;
 
       const user = await User.findByPk(userId);

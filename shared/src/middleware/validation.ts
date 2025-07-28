@@ -9,7 +9,7 @@ export interface ValidationSchemas {
 }
 
 export function createValidationMiddleware(schemas: ValidationSchemas) {
-  return async (request: FastifyRequest, reply: FastifyReply) => {
+  return async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
     try {
       // Validate request body
       if (schemas.body) {
@@ -33,7 +33,7 @@ export function createValidationMiddleware(schemas: ValidationSchemas) {
       }
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return reply.status(400).send({
+        await reply.status(400).send({
           error: 'Validation Error',
           message: 'Invalid request data',
           details: error.issues.map((err: z.ZodIssue) => ({
@@ -42,6 +42,7 @@ export function createValidationMiddleware(schemas: ValidationSchemas) {
             code: err.code,
           })),
         });
+        return;
       }
 
       // Re-throw unexpected errors

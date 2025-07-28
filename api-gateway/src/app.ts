@@ -3,7 +3,7 @@
  * Routes requests to appropriate microservices
  */
 
-import fastify, { FastifyInstance } from 'fastify';
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
 /**
  * Build API Gateway application
@@ -27,7 +27,7 @@ async function buildGateway(): Promise<FastifyInstance> {
   });
 
   // Health check endpoint
-  app.get('/health', async (request: any, reply: any) => {
+  app.get('/health', (_request: FastifyRequest, _reply: FastifyReply) => {
     return { status: 'OK', timestamp: new Date().toISOString() };
   });
 
