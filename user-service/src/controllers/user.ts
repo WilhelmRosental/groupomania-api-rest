@@ -7,26 +7,30 @@ import argon2 from 'argon2';
 import jwt from 'jsonwebtoken';
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { User } from '../models';
-import { 
-  UserSignupBody, 
-  UserLoginBody, 
-  UserUpdateBody, 
-  AuthenticatedRequest
-} from '../types';
+import { UserSignupBody, UserLoginBody, UserUpdateBody, AuthenticatedRequest } from '../types';
 
 interface UserController {
   signup(request: FastifyRequest<{ Body: UserSignupBody }>, reply: FastifyReply): Promise<void>;
   login(request: FastifyRequest<{ Body: UserLoginBody }>, reply: FastifyReply): Promise<void>;
   getProfile(request: AuthenticatedRequest, reply: FastifyReply): Promise<void>;
-  updateProfile(request: AuthenticatedRequest & { Body: UserUpdateBody }, reply: FastifyReply): Promise<void>;
-  updatePassword(request: AuthenticatedRequest & { Body: { password: string } }, reply: FastifyReply): Promise<void>;
+  updateProfile(
+    request: AuthenticatedRequest & { Body: UserUpdateBody },
+    reply: FastifyReply
+  ): Promise<void>;
+  updatePassword(
+    request: AuthenticatedRequest & { Body: { password: string } },
+    reply: FastifyReply
+  ): Promise<void>;
   deleteAccount(request: AuthenticatedRequest, reply: FastifyReply): Promise<void>;
   getAllUsers(request: AuthenticatedRequest, reply: FastifyReply): Promise<void>;
 }
 
 export const userController: UserController = {
   // User registration
-  async signup(request: FastifyRequest<{ Body: UserSignupBody }>, reply: FastifyReply): Promise<void> {
+  async signup(
+    request: FastifyRequest<{ Body: UserSignupBody }>,
+    reply: FastifyReply
+  ): Promise<void> {
     try {
       const { email, password, firstName, lastName } = request.body;
 
@@ -35,7 +39,7 @@ export const userController: UserController = {
       if (existingUser) {
         reply.code(400).send({
           success: false,
-          message: 'Un utilisateur avec cet email existe déjà'
+          message: 'Un utilisateur avec cet email existe déjà',
         });
         return;
       }
@@ -48,7 +52,7 @@ export const userController: UserController = {
         email,
         password: hashedPassword,
         firstName,
-        lastName
+        lastName,
       });
 
       reply.code(201).send({
@@ -58,20 +62,23 @@ export const userController: UserController = {
           id: user.id,
           email: user.email,
           firstName: user.firstName,
-          lastName: user.lastName
-        }
+          lastName: user.lastName,
+        },
       });
     } catch (error) {
       reply.code(500).send({
         success: false,
-        message: 'Erreur lors de la création de l\'utilisateur',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        message: "Erreur lors de la création de l'utilisateur",
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
 
   // User login
-  async login(request: FastifyRequest<{ Body: UserLoginBody }>, reply: FastifyReply): Promise<void> {
+  async login(
+    request: FastifyRequest<{ Body: UserLoginBody }>,
+    reply: FastifyReply
+  ): Promise<void> {
     try {
       const { email, password } = request.body;
 
@@ -80,7 +87,7 @@ export const userController: UserController = {
       if (!user) {
         reply.code(401).send({
           success: false,
-          message: 'Email ou mot de passe incorrect'
+          message: 'Email ou mot de passe incorrect',
         });
         return;
       }
@@ -90,16 +97,16 @@ export const userController: UserController = {
       if (!isValidPassword) {
         reply.code(401).send({
           success: false,
-          message: 'Email ou mot de passe incorrect'
+          message: 'Email ou mot de passe incorrect',
         });
         return;
       }
 
       // Generate JWT token
       const token = jwt.sign(
-        { 
+        {
           userId: user.id,
-          isAdmin: user.isAdmin ?? false
+          isAdmin: user.isAdmin ?? false,
         },
         process.env.JWT_SECRET ?? 'your-secret-key',
         { expiresIn: '24h' }
@@ -115,15 +122,15 @@ export const userController: UserController = {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            isAdmin: user.isAdmin
-          }
-        }
+            isAdmin: user.isAdmin,
+          },
+        },
       });
     } catch (error) {
       reply.code(500).send({
         success: false,
         message: 'Erreur lors de la connexion',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
@@ -135,7 +142,7 @@ export const userController: UserController = {
       if (!user) {
         reply.code(404).send({
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Utilisateur non trouvé',
         });
         return;
       }
@@ -147,20 +154,23 @@ export const userController: UserController = {
           email: user.email,
           firstName: user.firstName,
           lastName: user.lastName,
-          isAdmin: user.isAdmin
-        }
+          isAdmin: user.isAdmin,
+        },
       });
     } catch (error) {
       reply.code(500).send({
         success: false,
         message: 'Erreur lors de la récupération du profil',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
 
   // Update user profile
-  async updateProfile(request: AuthenticatedRequest & { Body: UserUpdateBody }, reply: FastifyReply): Promise<void> {
+  async updateProfile(
+    request: AuthenticatedRequest & { Body: UserUpdateBody },
+    reply: FastifyReply
+  ): Promise<void> {
     try {
       const requestWithBody = request as AuthenticatedRequest & { body: UserUpdateBody };
       const { firstName, lastName, email } = requestWithBody.body;
@@ -170,7 +180,7 @@ export const userController: UserController = {
       if (!user) {
         reply.code(404).send({
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Utilisateur non trouvé',
         });
         return;
       }
@@ -190,20 +200,23 @@ export const userController: UserController = {
           id: user.id,
           email: user.email,
           firstName: user.firstName,
-          lastName: user.lastName
-        }
+          lastName: user.lastName,
+        },
       });
     } catch (error) {
       reply.code(500).send({
         success: false,
         message: 'Erreur lors de la mise à jour du profil',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
 
   // Update user password
-  async updatePassword(request: AuthenticatedRequest & { Body: { password: string } }, reply: FastifyReply): Promise<void> {
+  async updatePassword(
+    request: AuthenticatedRequest & { Body: { password: string } },
+    reply: FastifyReply
+  ): Promise<void> {
     try {
       const requestWithBody = request as AuthenticatedRequest & { body: { password: string } };
       const { password } = requestWithBody.body;
@@ -213,7 +226,7 @@ export const userController: UserController = {
       if (!user) {
         reply.code(404).send({
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Utilisateur non trouvé',
         });
         return;
       }
@@ -225,13 +238,13 @@ export const userController: UserController = {
 
       reply.send({
         success: true,
-        message: 'Mot de passe mis à jour avec succès'
+        message: 'Mot de passe mis à jour avec succès',
       });
     } catch (error) {
       reply.code(500).send({
         success: false,
         message: 'Erreur lors de la mise à jour du mot de passe',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
@@ -245,7 +258,7 @@ export const userController: UserController = {
       if (!user) {
         reply.code(404).send({
           success: false,
-          message: 'Utilisateur non trouvé'
+          message: 'Utilisateur non trouvé',
         });
         return;
       }
@@ -254,13 +267,13 @@ export const userController: UserController = {
 
       reply.send({
         success: true,
-        message: 'Compte supprimé avec succès'
+        message: 'Compte supprimé avec succès',
       });
     } catch (error) {
       reply.code(500).send({
         success: false,
         message: 'Erreur lors de la suppression du compte',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
   },
@@ -271,27 +284,27 @@ export const userController: UserController = {
       if (!request.user.isAdmin) {
         reply.code(403).send({
           success: false,
-          message: 'Accès interdit - Droits administrateur requis'
+          message: 'Accès interdit - Droits administrateur requis',
         });
         return;
       }
 
       const users = await User.findAll({
-        attributes: ['id', 'email', 'firstName', 'lastName', 'isAdmin', 'createdAt']
+        attributes: ['id', 'email', 'firstName', 'lastName', 'isAdmin', 'createdAt'],
       });
 
       reply.send({
         success: true,
-        data: users
+        data: users,
       });
     } catch (error) {
       reply.code(500).send({
         success: false,
         message: 'Erreur lors de la récupération des utilisateurs',
-        error: error instanceof Error ? error.message : 'Unknown error'
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
     }
-  }
+  },
 };
 
 export default userController;

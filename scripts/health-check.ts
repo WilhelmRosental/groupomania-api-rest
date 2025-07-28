@@ -26,18 +26,18 @@ const services: ServiceConfig[] = [
   {
     name: 'API Gateway',
     url: `http://localhost:${process.env.API_GATEWAY_PORT ?? '3000'}/health`,
-    timeout: 5000
+    timeout: 5000,
   },
   {
     name: 'User Service',
     url: `http://localhost:${process.env.USER_SERVICE_PORT ?? '3001'}/health`,
-    timeout: 5000
+    timeout: 5000,
   },
   {
     name: 'Post Service',
     url: `http://localhost:${process.env.POST_SERVICE_PORT ?? '3002'}/health`,
-    timeout: 5000
-  }
+    timeout: 5000,
+  },
 ];
 
 // Configuration de la base de données
@@ -47,40 +47,40 @@ const dbConfig = {
   user: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASSWORD ?? 'password',
   database: process.env.DB_NAME ?? 'groupomania',
-  connectionTimeoutMillis: 5000
+  connectionTimeoutMillis: 5000,
 };
 
 /**
  * Vérifie l'état d'un service HTTP
  */
 function checkServiceHealth(service: ServiceConfig): Promise<HealthStatus> {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     const startTime = Date.now();
-    
-    const req = http.get(service.url, { timeout: service.timeout }, (res) => {
+
+    const req = http.get(service.url, { timeout: service.timeout }, res => {
       const responseTime = Date.now() - startTime;
-      
+
       if (res.statusCode === 200) {
         resolve({
           service: service.name,
           status: 'healthy',
-          responseTime
+          responseTime,
         });
       } else {
         resolve({
           service: service.name,
           status: 'unhealthy',
           responseTime,
-          error: `HTTP ${res.statusCode ?? 'unknown'}`
+          error: `HTTP ${res.statusCode ?? 'unknown'}`,
         });
       }
     });
 
-    req.on('error', (error) => {
+    req.on('error', error => {
       resolve({
         service: service.name,
         status: 'unhealthy',
-        error: error.message
+        error: error.message,
       });
     });
 
@@ -89,7 +89,7 @@ function checkServiceHealth(service: ServiceConfig): Promise<HealthStatus> {
       resolve({
         service: service.name,
         status: 'unhealthy',
-        error: 'Request timeout'
+        error: 'Request timeout',
       });
     });
   });
@@ -106,18 +106,18 @@ async function checkDatabaseHealth(): Promise<HealthStatus> {
     await client.connect();
     await client.query('SELECT 1');
     const responseTime = Date.now() - startTime;
-    
+
     return {
       service: 'PostgreSQL Database',
       status: 'healthy',
-      responseTime
+      responseTime,
     };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       service: 'PostgreSQL Database',
       status: 'unhealthy',
-      error: errorMessage
+      error: errorMessage,
     };
   } finally {
     try {
@@ -134,35 +134,35 @@ async function checkDatabaseHealth(): Promise<HealthStatus> {
 async function performHealthCheck(): Promise<void> {
   console.error('🔍 Groupomania Health Check');
   console.error('================================');
-  
+
   const startTime = Date.now();
   const healthChecks: Promise<HealthStatus>[] = [
     checkDatabaseHealth(),
-    ...services.map(service => checkServiceHealth(service))
+    ...services.map(service => checkServiceHealth(service)),
   ];
 
   try {
     const results = await Promise.all(healthChecks);
     const totalTime = Date.now() - startTime;
-    
+
     // Afficher les résultats
     let allHealthy = true;
-    
+
     results.forEach(result => {
       const statusIcon = result.status === 'healthy' ? '✅' : '❌';
       const responseInfo = result.responseTime !== undefined ? ` (${result.responseTime}ms)` : '';
       const errorInfo = result.error !== undefined ? ` - ${result.error}` : '';
-      
+
       console.error(`${statusIcon} ${result.service}${responseInfo}${errorInfo}`);
-      
+
       if (result.status !== 'healthy') {
         allHealthy = false;
       }
     });
-    
+
     console.error('================================');
     console.error(`🕐 Total check time: ${totalTime}ms`);
-    
+
     if (allHealthy) {
       console.error('🎉 All services are healthy!');
       process.exit(0);
@@ -170,7 +170,6 @@ async function performHealthCheck(): Promise<void> {
       console.error('⚠️  Some services are unhealthy');
       process.exit(1);
     }
-    
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('❌ Health check failed:', errorMessage);

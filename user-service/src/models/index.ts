@@ -6,21 +6,16 @@
 import { Sequelize, DataTypes, Model, Optional } from 'sequelize';
 import config from '../config/config';
 
-const sequelize = new Sequelize(
-  config.database,
-  config.username,
-  config.password,
-  {
-    host: config.host,
-    dialect: config.dialect as 'postgres',
-    logging: (config.logging === true) ? console.error : false,
-    define: {
-      freezeTableName: true,
-      timestamps: true,
-      underscored: true
-    }
-  }
-);
+const sequelize = new Sequelize(config.database, config.username, config.password, {
+  host: config.host,
+  dialect: config.dialect as 'postgres',
+  logging: config.logging === true ? console.error : false,
+  define: {
+    freezeTableName: true,
+    timestamps: true,
+    underscored: true,
+  },
+});
 
 // User attributes interface
 export interface UserAttributes {
@@ -35,7 +30,8 @@ export interface UserAttributes {
 }
 
 // User creation attributes (optional fields)
-export interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'isAdmin' | 'createdAt' | 'updatedAt'> {}
+export interface UserCreationAttributes
+  extends Optional<UserAttributes, 'id' | 'isAdmin' | 'createdAt' | 'updatedAt'> {}
 
 // User model class
 export class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
@@ -50,51 +46,54 @@ export class User extends Model<UserAttributes, UserCreationAttributes> implemen
 }
 
 // User model definition
-User.init({
-  id: {
-    type: DataTypes.INTEGER,
-    autoIncrement: true,
-    primaryKey: true
+User.init(
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true,
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true,
+      validate: {
+        isEmail: true,
+      },
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    firstName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: 'first_name',
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      field: 'last_name',
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_admin',
+    },
+    createdAt: {
+      type: DataTypes.DATE,
+      field: 'created_at',
+    },
+    updatedAt: {
+      type: DataTypes.DATE,
+      field: 'updated_at',
+    },
   },
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: true
-    }
-  },
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false
-  },
-  firstName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    field: 'first_name'
-  },
-  lastName: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    field: 'last_name'
-  },
-  isAdmin: {
-    type: DataTypes.BOOLEAN,
-    defaultValue: false,
-    field: 'is_admin'
-  },
-  createdAt: {
-    type: DataTypes.DATE,
-    field: 'created_at'
-  },
-  updatedAt: {
-    type: DataTypes.DATE,
-    field: 'updated_at'
+  {
+    sequelize,
+    tableName: 'users',
   }
-}, {
-  sequelize,
-  tableName: 'users'
-});
+);
 
 export { sequelize };
 export default { sequelize, User };

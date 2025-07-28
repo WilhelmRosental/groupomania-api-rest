@@ -20,12 +20,12 @@ const config: DatabaseConfig = {
   port: parseInt(process.env.DB_PORT ?? '5432'),
   user: process.env.DB_USER ?? 'postgres',
   password: process.env.DB_PASSWORD ?? '',
-  database: process.env.DB_NAME ?? 'groupomania'
+  database: process.env.DB_NAME ?? 'groupomania',
 };
 
 async function setupDatabases(): Promise<void> {
   console.error('🔧 Configuration de la base de données...');
-  
+
   try {
     // Connexion à PostgreSQL (base postgres par défaut)
     const client = new Client({
@@ -33,17 +33,16 @@ async function setupDatabases(): Promise<void> {
       port: config.port,
       user: config.user,
       password: config.password,
-      database: 'postgres' // Connexion à la base par défaut
+      database: 'postgres', // Connexion à la base par défaut
     });
 
     await client.connect();
     console.error('✅ Connexion à PostgreSQL réussie');
 
     // Vérifier si la base existe
-    const dbExists = await client.query(
-      'SELECT 1 FROM pg_database WHERE datname = $1',
-      [config.database]
-    );
+    const dbExists = await client.query('SELECT 1 FROM pg_database WHERE datname = $1', [
+      config.database,
+    ]);
 
     if (dbExists.rows.length === 0) {
       // Créer la base de données
@@ -55,10 +54,9 @@ async function setupDatabases(): Promise<void> {
 
     // Si CREATE_USER est défini, créer un utilisateur dédié
     if (process.env.CREATE_USER === 'true') {
-      const userExists = await client.query(
-        'SELECT 1 FROM pg_roles WHERE rolname = $1',
-        ['groupomania_user']
-      );
+      const userExists = await client.query('SELECT 1 FROM pg_roles WHERE rolname = $1', [
+        'groupomania_user',
+      ]);
 
       if (userExists.rows.length === 0) {
         await client.query(`
@@ -70,13 +68,14 @@ async function setupDatabases(): Promise<void> {
       }
 
       // Donner les permissions
-      await client.query(`GRANT ALL PRIVILEGES ON DATABASE "${config.database}" TO groupomania_user`);
+      await client.query(
+        `GRANT ALL PRIVILEGES ON DATABASE "${config.database}" TO groupomania_user`
+      );
       console.error('✅ Permissions accordées');
     }
 
     await client.end();
     console.error('🎉 Configuration de la base de données terminée');
-
   } catch (error) {
     console.error('❌ Erreur lors de la configuration:', error);
     process.exit(1);

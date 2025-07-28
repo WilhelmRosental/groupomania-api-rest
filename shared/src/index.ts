@@ -1,5 +1,13 @@
 // Export configuration
-export { config, validateConfig, isDevelopment, isProduction, isTest, getDatabaseUrl, getLoggerConfig } from './config';
+export {
+  config,
+  validateConfig,
+  isDevelopment,
+  isProduction,
+  isTest,
+  getDatabaseUrl,
+  getLoggerConfig,
+} from './config';
 export type { Config } from './config';
 
 // Export logger

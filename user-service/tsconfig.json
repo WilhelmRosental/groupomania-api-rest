@@ -1,19 +1,17 @@
 {
-    "extends": "../tsconfig.json",
-    "compilerOptions": {
-        "outDir": "./dist",
-        "rootDir": "./src"
-    },
-    "include": [
-        "src/**/*.ts"
-    ],
-    "exclude": [
-        "**/*.test.ts",
-        "**/*.test.d.ts",
-        "node_modules",
-        "dist",
-        "migrations/**/*.js",
-        "seeders/**/*.js",
-        "config/**/*.js"
-    ]
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src"
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "**/*.test.ts",
+    "**/*.test.d.ts",
+    "node_modules",
+    "dist",
+    "migrations/**/*.js",
+    "seeders/**/*.js",
+    "config/**/*.js"
+  ]
 }

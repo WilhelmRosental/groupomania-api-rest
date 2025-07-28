@@ -14,11 +14,11 @@ async function buildUserApp(): Promise<FastifyInstance> {
 
   // Security plugins
   await app.register(require('@fastify/helmet'));
-  
+
   // CORS configuration
   await app.register(require('@fastify/cors'), {
-    origin: ["http://localhost:3000", "http://localhost:3001"], // API Gateway + Frontend
-    credentials: true
+    origin: ['http://localhost:3000', 'http://localhost:3001'], // API Gateway + Frontend
+    credentials: true,
   });
 
   // Cookie support
@@ -27,15 +27,20 @@ async function buildUserApp(): Promise<FastifyInstance> {
   // Rate limiting
   await app.register(require('@fastify/rate-limit'), {
     max: 100,
-    timeWindow: '15 minutes'
+    timeWindow: '15 minutes',
   });
 
   // Custom validation hook
-  app.addHook('preHandler', (request: FastifyRequest, reply: FastifyReply, done: () => void): void => {
-    // Import dynamically to avoid circular dependencies
-    const { sanitizeRequest } = require('../../shared/middleware/validation') as { sanitizeRequest: (req: FastifyRequest, res: FastifyReply, callback: () => void) => void };
-    sanitizeRequest(request, reply, done);
-  });
+  app.addHook(
+    'preHandler',
+    (request: FastifyRequest, reply: FastifyReply, done: () => void): void => {
+      // Import dynamically to avoid circular dependencies
+      const { sanitizeRequest } = require('../../shared/middleware/validation') as {
+        sanitizeRequest: (req: FastifyRequest, res: FastifyReply, callback: () => void) => void;
+      };
+      sanitizeRequest(request, reply, done);
+    }
+  );
 
   // Register user routes
   await app.register(userRoutes, { prefix: '/api/auth' });

@@ -27,10 +27,12 @@ Ce document explique comment utiliser la collection de tests Postman pour tester
 ## Structure des tests
 
 ### 📁 Authentication
+
 - **Register User** - Créer un nouveau compte utilisateur
 - **Login User** - Se connecter et récupérer le token JWT
 
 ### 📁 Posts
+
 - **Create Post** - Créer un nouveau post (avec ou sans image)
 - **Get All Posts** - Récupérer tous les posts
 - **Get Post by ID** - Récupérer un post spécifique
@@ -40,17 +42,20 @@ Ce document explique comment utiliser la collection de tests Postman pour tester
 - **Delete Post** - Supprimer un post
 
 ### 📁 Comments
+
 - **Create Comment** - Ajouter un commentaire à un post
 - **Get Comments for Post** - Récupérer tous les commentaires d'un post
 - **Update Comment** - Modifier un commentaire
 - **Delete Comment** - Supprimer un commentaire
 
 ### 📁 Users
+
 - **Get User Profile** - Récupérer le profil utilisateur
 - **Update User Profile** - Modifier le profil utilisateur
 - **Delete User** - Supprimer un compte utilisateur
 
 ### 📁 Error Cases
+
 - **Unauthorized Access** - Test d'accès sans authentification
 - **Invalid Login Credentials** - Test avec des identifiants incorrects
 - **Get Non-existent Post** - Test avec un post inexistant
@@ -94,13 +99,16 @@ Chaque requête inclut des tests automatiques qui vérifient :
 ## Exécution en lot
 
 ### Runner de collection
+
 1. Cliquez sur les "..." à côté de la collection
 2. Sélectionnez "Run collection"
 3. Choisissez l'environnement "Groupomania Environment"
 4. Cliquez sur "Run Groupomania API Tests"
 
 ### Ordre personnalisé
+
 Si vous voulez tester dans un ordre spécifique :
+
 1. Décochez les tests que vous ne voulez pas exécuter
 2. Organisez l'ordre dans le runner
 3. Lancez l'exécution
@@ -108,6 +116,7 @@ Si vous voulez tester dans un ordre spécifique :
 ## Personnalisation
 
 ### Modifier les données de test
+
 Vous pouvez modifier les données dans le body des requêtes :
 
 ```json
@@ -120,18 +129,21 @@ Vous pouvez modifier les données dans le body des requêtes :
 ```
 
 ### Ajouter des images
+
 Pour les tests avec upload d'images :
+
 1. Ouvrez la requête "Create Post"
 2. Dans l'onglet "Body", type "form-data"
 3. Pour le champ "image", sélectionnez un fichier local
 
 ### Tests personnalisés
+
 Vous pouvez ajouter vos propres tests dans l'onglet "Tests" de chaque requête :
 
 ```javascript
-pm.test("Mon test personnalisé", function () {
-    var jsonData = pm.response.json();
-    pm.expect(jsonData.someProperty).to.eql("expectedValue");
+pm.test('Mon test personnalisé', function () {
+  var jsonData = pm.response.json();
+  pm.expect(jsonData.someProperty).to.eql('expectedValue');
 });
 ```
 
@@ -152,7 +164,9 @@ pm.test("Mon test personnalisé", function () {
    - Vérifiez la connexion à la base de données
 
 ### Variables manquantes
+
 Si une variable n'est pas définie :
+
 1. Allez dans l'environnement
 2. Vérifiez les valeurs "Current Value"
 3. Réexécutez les tests précédents si nécessaire
@@ -160,6 +174,7 @@ Si une variable n'est pas définie :
 ## Support
 
 Pour toute question ou problème avec les tests :
+
 1. Vérifiez que votre API est conforme aux endpoints testés
 2. Consultez les logs de votre serveur pour les erreurs
 3. Vérifiez la documentation de votre API

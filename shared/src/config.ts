@@ -44,12 +44,12 @@ export function validateConfig(): Config {
       const missingVars = error.issues
         .map((err: z.ZodIssue) => `${err.path.join('.')}: ${err.message}`)
         .join('\n');
-      
+
       throw new Error(`Configuration validation failed:\n${missingVars}`);
     }
     throw error;
   }
-}// Configuration globale
+} // Configuration globale
 export const config = validateConfig();
 
 // Utilitaires de configuration
@@ -62,14 +62,22 @@ export const getDatabaseUrl = (): string =>
   `postgresql://${config.DB_USER}:${config.DB_PASSWORD}@${config.DB_HOST}:${config.DB_PORT}/${config.DB_NAME}`;
 
 // Configuration du logger
-export const getLoggerConfig = (): { level: string; transport?: { target: string; options: { colorize: boolean; translateTime: string; ignore: string } } } => ({
+export const getLoggerConfig = (): {
+  level: string;
+  transport?: {
+    target: string;
+    options: { colorize: boolean; translateTime: string; ignore: string };
+  };
+} => ({
   level: config.LOG_LEVEL,
-  transport: isDevelopment() ? {
-    target: 'pino-pretty',
-    options: {
-      colorize: true,
-      translateTime: 'HH:MM:ss Z',
-      ignore: 'pid,hostname',
-    }
-  } : undefined,
+  transport: isDevelopment()
+    ? {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          translateTime: 'HH:MM:ss Z',
+          ignore: 'pid,hostname',
+        },
+      }
+    : undefined,
 });

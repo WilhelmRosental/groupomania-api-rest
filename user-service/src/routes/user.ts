@@ -21,15 +21,30 @@ const getProfileHandler = async (request: FastifyRequest, reply: FastifyReply): 
   await userController.getProfile(request as AuthenticatedRequest, reply);
 };
 
-const updateProfileHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  await userController.updateProfile(request as AuthenticatedRequest & { Body: UserUpdateBody }, reply);
+const updateProfileHandler = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> => {
+  await userController.updateProfile(
+    request as AuthenticatedRequest & { Body: UserUpdateBody },
+    reply
+  );
 };
 
-const updatePasswordHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  await userController.updatePassword(request as AuthenticatedRequest & { Body: { password: string } }, reply);
+const updatePasswordHandler = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> => {
+  await userController.updatePassword(
+    request as AuthenticatedRequest & { Body: { password: string } },
+    reply
+  );
 };
 
-const deleteAccountHandler = async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+const deleteAccountHandler = async (
+  request: FastifyRequest,
+  reply: FastifyReply
+): Promise<void> => {
   await userController.deleteAccount(request as AuthenticatedRequest, reply);
 };
 
@@ -39,84 +54,112 @@ const getAllUsersHandler = async (request: FastifyRequest, reply: FastifyReply):
 
 export default function userRoutes(fastify: FastifyInstance): void {
   // Register routes
-  fastify.post('/api/auth/signup', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['email', 'password', 'firstName', 'lastName'],
-        properties: {
-          email: { type: 'string' },
-          password: { type: 'string' },
-          firstName: { type: 'string' },
-          lastName: { type: 'string' }
-        }
-      }
+  fastify.post(
+    '/api/auth/signup',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['email', 'password', 'firstName', 'lastName'],
+          properties: {
+            email: { type: 'string' },
+            password: { type: 'string' },
+            firstName: { type: 'string' },
+            lastName: { type: 'string' },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      return await signupHandler(request, reply);
     }
-  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return await signupHandler(request, reply);
-  });
+  );
 
-  fastify.post('/login', {
-    schema: {
-      body: {
-        type: 'object',
-        required: ['email', 'password'],
-        properties: {
-          email: { type: 'string', format: 'email' },
-          password: { type: 'string', minLength: 1 }
-        }
-      }
+  fastify.post(
+    '/login',
+    {
+      schema: {
+        body: {
+          type: 'object',
+          required: ['email', 'password'],
+          properties: {
+            email: { type: 'string', format: 'email' },
+            password: { type: 'string', minLength: 1 },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      return await loginHandler(request, reply);
     }
-  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return await loginHandler(request, reply);
-  });
+  );
 
-  fastify.get('/profile', { 
-    preHandler: [auth] 
-  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return await getProfileHandler(request, reply);
-  });
-
-  fastify.put('/profile', { 
-    preHandler: [auth],
-    schema: {
-      body: {
-        type: 'object',
-        properties: {
-          firstName: { type: 'string', minLength: 2, maxLength: 50 },
-          lastName: { type: 'string', minLength: 2, maxLength: 50 },
-          email: { type: 'string', format: 'email', minLength: 5, maxLength: 100 }
-        }
-      }
+  fastify.get(
+    '/profile',
+    {
+      preHandler: [auth],
+    },
+    async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      return await getProfileHandler(request, reply);
     }
-  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return await updateProfileHandler(request, reply);
-  });
+  );
 
-  fastify.put('/password', { 
-    preHandler: [auth],
-    schema: {
-      body: {
-        type: 'object',
-        required: ['password'],
-        properties: {
-          password: { type: 'string', minLength: 8, maxLength: 128 }
-        }
-      }
+  fastify.put(
+    '/profile',
+    {
+      preHandler: [auth],
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            firstName: { type: 'string', minLength: 2, maxLength: 50 },
+            lastName: { type: 'string', minLength: 2, maxLength: 50 },
+            email: { type: 'string', format: 'email', minLength: 5, maxLength: 100 },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      return await updateProfileHandler(request, reply);
     }
-  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return await updatePasswordHandler(request, reply);
-  });
+  );
 
-  fastify.delete('/account', { 
-    preHandler: [auth] 
-  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return await deleteAccountHandler(request, reply);
-  });
+  fastify.put(
+    '/password',
+    {
+      preHandler: [auth],
+      schema: {
+        body: {
+          type: 'object',
+          required: ['password'],
+          properties: {
+            password: { type: 'string', minLength: 8, maxLength: 128 },
+          },
+        },
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      return await updatePasswordHandler(request, reply);
+    }
+  );
 
-  fastify.get('/admin/users', { 
-    preHandler: [auth] 
-  }, async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
-    return await getAllUsersHandler(request, reply);
-  });
+  fastify.delete(
+    '/account',
+    {
+      preHandler: [auth],
+    },
+    async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      return await deleteAccountHandler(request, reply);
+    }
+  );
+
+  fastify.get(
+    '/admin/users',
+    {
+      preHandler: [auth],
+    },
+    async (request: FastifyRequest, reply: FastifyReply): Promise<void> => {
+      return await getAllUsersHandler(request, reply);
+    }
+  );
 }

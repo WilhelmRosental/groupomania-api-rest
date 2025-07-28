@@ -1,40 +1,26 @@
 {
-    "compilerOptions": {
-        "target": "ES2022",
-        "module": "commonjs",
-        "lib": [
-            "ES2022"
-        ],
-        "outDir": "./dist",
-        "rootDir": "./",
-        "strict": true,
-        "esModuleInterop": true,
-        "skipLibCheck": true,
-        "forceConsistentCasingInFileNames": true,
-        "declaration": true,
-        "declarationMap": true,
-        "sourceMap": true,
-        "resolveJsonModule": true,
-        "moduleResolution": "node",
-        "allowSyntheticDefaultImports": true,
-        "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "paths": {
-            "@shared/*": [
-                "./shared/*"
-            ]
-        }
-    },
-    "exclude": [
-        "**/*.test.ts",
-        "**/*.test.d.ts",
-        "node_modules",
-        "dist",
-        "**/*.js",
-        "**/*.d.ts"
-    ],
-    "include": [
-        "**/*.ts",
-        "shared/**/*.ts"
-    ]
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "commonjs",
+    "lib": ["ES2022"],
+    "outDir": "./dist",
+    "rootDir": "./",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "paths": {
+      "@shared/*": ["./shared/*"]
+    }
+  },
+  "exclude": ["**/*.test.ts", "**/*.test.d.ts", "node_modules", "dist", "**/*.js", "**/*.d.ts"],
+  "include": ["**/*.ts", "shared/**/*.ts"]
 }

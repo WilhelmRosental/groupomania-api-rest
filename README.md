@@ -19,6 +19,7 @@ Frontend (React) ←→ API Gateway ←→ User Service
 ## Démarrage rapide
 
 ### Prérequis
+
 - Node.js ≥ 20.0.0
 - npm ≥ 8.0.0
 - PostgreSQL
@@ -49,7 +50,7 @@ npm run dev:all
 # User Service
 cd user-service && npm start
 
-# Post Service  
+# Post Service
 cd post-service && npm start
 
 # API Gateway
@@ -82,13 +83,13 @@ groupomania-api-rest/
 
 ## Scripts disponibles
 
-| Script | Description |
-|--------|-------------|
-| `npm run start:all` | Démarre tous les services |
-| `npm run dev:all` | Mode développement pour tous les services |
+| Script                   | Description                               |
+| ------------------------ | ----------------------------------------- |
+| `npm run start:all`      | Démarre tous les services                 |
+| `npm run dev:all`        | Mode développement pour tous les services |
 | `npm run db:migrate:all` | Applique les migrations de toutes les BDD |
-| `npm run db:reset` | Remet à zéro toutes les BDD |
-| `npm run test:all` | Lance tous les tests |
+| `npm run db:reset`       | Remet à zéro toutes les BDD               |
+| `npm run test:all`       | Lance tous les tests                      |
 
 ## Configuration
 

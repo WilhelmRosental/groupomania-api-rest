@@ -32,28 +32,28 @@ export default function postRoutes(fastify: FastifyInstance, _options: FastifyPl
     preHandler: auth,
     handler: (request: FastifyRequest, reply: FastifyReply) => {
       return postController.createPost(request as CreatePostRequest, reply);
-    }
+    },
   });
 
   // Get all posts with pagination
   fastify.get('/', {
     handler: (request: FastifyRequest, reply: FastifyReply) => {
       return postController.getAllPosts(request as PostsRequest, reply);
-    }
+    },
   });
 
   // Get a specific post by ID
   fastify.get('/:id', {
     handler: (request: FastifyRequest, reply: FastifyReply) => {
       return postController.getOnePost(request as PostParamsRequest, reply);
-    }
+    },
   });
 
   // Get all posts for a specific user
   fastify.get('/user/:id', {
     handler: (request: FastifyRequest, reply: FastifyReply) => {
       return postController.getUserAllPosts(request as UserPostsRequest, reply);
-    }
+    },
   });
 
   // Delete a post (requires authentication and ownership/admin)
@@ -61,6 +61,6 @@ export default function postRoutes(fastify: FastifyInstance, _options: FastifyPl
     preHandler: auth,
     handler: (request: FastifyRequest, reply: FastifyReply) => {
       return postController.deletePost(request as PostParamsRequest, reply);
-    }
+    },
   });
 }

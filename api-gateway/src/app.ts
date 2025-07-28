@@ -13,17 +13,17 @@ async function buildGateway(): Promise<FastifyInstance> {
 
   // Security plugins
   await app.register(require('@fastify/helmet'));
-  
+
   // CORS configuration for frontend
   await app.register(require('@fastify/cors'), {
-    origin: "http://localhost:3001", // Frontend URL
-    credentials: true
+    origin: 'http://localhost:3001', // Frontend URL
+    credentials: true,
   });
 
   // Global rate limiting
   await app.register(require('@fastify/rate-limit'), {
     max: 200,
-    timeWindow: '15 minutes'
+    timeWindow: '15 minutes',
   });
 
   // Health check endpoint
@@ -35,21 +35,21 @@ async function buildGateway(): Promise<FastifyInstance> {
   await app.register(require('@fastify/http-proxy'), {
     upstream: 'http://localhost:3001',
     prefix: '/api/auth',
-    http2: false
+    http2: false,
   });
 
   // Proxy to Post Service
   await app.register(require('@fastify/http-proxy'), {
     upstream: 'http://localhost:3002',
     prefix: '/api/posts',
-    http2: false
+    http2: false,
   });
 
   // Proxy for images from Post Service
   await app.register(require('@fastify/http-proxy'), {
     upstream: 'http://localhost:3002',
     prefix: '/images',
-    http2: false
+    http2: false,
   });
 
   return app;

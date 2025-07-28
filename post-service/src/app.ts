@@ -7,28 +7,31 @@ import postRoutes from './routes/post';
  */
 async function buildPostApp(): Promise<FastifyInstance> {
   const app = fastify({
-    logger: process.env.NODE_ENV === 'development' ? {
-      level: process.env.LOG_LEVEL ?? 'info',
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'HH:MM:ss Z',
-          ignore: 'pid,hostname'
-        }
-      }
-    } : {
-      level: process.env.LOG_LEVEL ?? 'info'
-    },
+    logger:
+      process.env.NODE_ENV === 'development'
+        ? {
+            level: process.env.LOG_LEVEL ?? 'info',
+            transport: {
+              target: 'pino-pretty',
+              options: {
+                colorize: true,
+                translateTime: 'HH:MM:ss Z',
+                ignore: 'pid,hostname',
+              },
+            },
+          }
+        : {
+            level: process.env.LOG_LEVEL ?? 'info',
+          },
   });
 
   // Security plugins
   await app.register(require('@fastify/helmet'));
-  
+
   // CORS configuration
   await app.register(require('@fastify/cors'), {
-    origin: ["http://localhost:3000", "http://localhost:3001"], // API Gateway + Frontend
-    credentials: true
+    origin: ['http://localhost:3000', 'http://localhost:3001'], // API Gateway + Frontend
+    credentials: true,
   });
 
   // Cookie support
@@ -37,13 +40,13 @@ async function buildPostApp(): Promise<FastifyInstance> {
   // Static files for images
   await app.register(require('@fastify/static'), {
     root: path.join(__dirname, '../images'),
-    prefix: '/images/'
+    prefix: '/images/',
   });
 
   // Rate limiting
   await app.register(require('@fastify/rate-limit'), {
     max: 100,
-    timeWindow: '15 minutes'
+    timeWindow: '15 minutes',
   });
 
   // Multipart support for file uploads
@@ -56,8 +59,10 @@ async function buildPostApp(): Promise<FastifyInstance> {
   app.addHook('preHandler', async (request, reply): Promise<void> => {
     // Import dynamically to avoid circular dependencies
     try {
-      const validationModule = await import('../../shared/dist/middleware/validation.js') as {
-        createValidationMiddleware?: (options: Record<string, unknown>) => (request: unknown, reply: unknown) => Promise<void>;
+      const validationModule = (await import('../../shared/dist/middleware/validation.js')) as {
+        createValidationMiddleware?: (
+          options: Record<string, unknown>
+        ) => (request: unknown, reply: unknown) => Promise<void>;
       };
       const createValidationMiddleware = validationModule.createValidationMiddleware;
       if (typeof createValidationMiddleware === 'function') {
@@ -74,9 +79,7 @@ async function buildPostApp(): Promise<FastifyInstance> {
     request.log.error(error);
 
     const statusCode = error.statusCode ?? 500;
-    const message = statusCode === 500
-      ? 'Internal Server Error'
-      : error.message;
+    const message = statusCode === 500 ? 'Internal Server Error' : error.message;
 
     // Send error response
     reply.status(statusCode).send({ error: message });

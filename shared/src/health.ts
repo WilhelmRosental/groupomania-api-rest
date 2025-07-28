@@ -37,28 +37,36 @@ export class HealthChecker {
     for (const [name, checker] of this.dependencies) {
       try {
         const result = await checker();
-        if (typeof name === 'string' && name && !Object.prototype.hasOwnProperty.call(dependencyResults, name)) {
+        if (
+          typeof name === 'string' &&
+          name &&
+          !Object.prototype.hasOwnProperty.call(dependencyResults, name)
+        ) {
           Object.defineProperty(dependencyResults, name, {
             value: result,
             enumerable: true,
             configurable: true,
-            writable: true
+            writable: true,
           });
         }
-        
+
         if (result.status === 'unhealthy') {
           overallStatus = 'degraded';
         }
       } catch (error) {
-        if (typeof name === 'string' && name && !Object.prototype.hasOwnProperty.call(dependencyResults, name)) {
+        if (
+          typeof name === 'string' &&
+          name &&
+          !Object.prototype.hasOwnProperty.call(dependencyResults, name)
+        ) {
           Object.defineProperty(dependencyResults, name, {
             value: {
               status: 'unhealthy',
-              error: error instanceof Error ? error.message : 'Unknown error'
+              error: error instanceof Error ? error.message : 'Unknown error',
             },
             enumerable: true,
             configurable: true,
-            writable: true
+            writable: true,
           });
         }
         overallStatus = 'degraded';
@@ -70,7 +78,7 @@ export class HealthChecker {
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       version: this.version,
-      service: this.serviceName
+      service: this.serviceName,
     };
 
     if (Object.keys(dependencyResults).length > 0) {
@@ -95,19 +103,19 @@ export const createDatabaseHealthCheck = (connectionTest: () => Promise<boolean>
       const isConnected = await connectionTest();
       const result: HealthCheck = {
         status: isConnected ? 'healthy' : 'unhealthy',
-        responseTime: Date.now() - start
+        responseTime: Date.now() - start,
       };
-      
+
       if (!isConnected) {
         result.error = 'Database connection failed';
       }
-      
+
       return result;
     } catch (error) {
       return {
         status: 'unhealthy',
         responseTime: Date.now() - start,
-        error: error instanceof Error ? error.message : 'Database check failed'
+        error: error instanceof Error ? error.message : 'Database check failed',
       };
     }
   };
@@ -118,7 +126,7 @@ export const createHttpHealthCheck = (_url: string) => {
   return (): Promise<HealthCheck> => {
     return Promise.resolve({
       status: 'healthy',
-      responseTime: 0
+      responseTime: 0,
     });
   };
 };

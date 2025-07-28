@@ -18,38 +18,39 @@ export const auth = async (request: FastifyRequest, reply: FastifyReply): Promis
     const authHeader = request.headers.authorization;
     if (typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
       const token = authHeader.substring(7); // Remove 'Bearer ' prefix
-      
+
       try {
         const decoded = jwt.verify(token, JWT_SECRET) as { userId?: number; isAdmin?: boolean };
-        
+
         // Check if token and user are valid
         if (!token || typeof decoded.userId !== 'number') {
           return reply.status(401).send({
             success: false,
-            message: 'Token invalide'
+            message: 'Token invalide',
           });
         }
 
         // Attach user info to request with proper typing
-        (request as FastifyRequest & { userId?: number; isAdmin?: boolean }).userId = decoded.userId;
-        (request as FastifyRequest & { userId?: number; isAdmin?: boolean }).isAdmin = decoded.isAdmin ?? false;
-        
+        (request as FastifyRequest & { userId?: number; isAdmin?: boolean }).userId =
+          decoded.userId;
+        (request as FastifyRequest & { userId?: number; isAdmin?: boolean }).isAdmin =
+          decoded.isAdmin ?? false;
       } catch {
         await reply.status(401).send({
-          error: 'Invalid token.'
+          error: 'Invalid token.',
         });
         return;
       }
     } else {
       return reply.status(401).send({
         success: false,
-        message: 'Token requis'
+        message: 'Token requis',
       });
     }
   } catch (error) {
     console.error('Auth middleware error:', error);
     await reply.status(500).send({
-      error: 'Internal server error during authentication.'
+      error: 'Internal server error during authentication.',
     });
   }
 };
