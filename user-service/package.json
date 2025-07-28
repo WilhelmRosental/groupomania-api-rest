@@ -35,6 +35,8 @@
     "author": "Nathan Hallouin",
     "license": "MIT",
     "dependencies": {
+        "argon2": "^0.43.1",
+        "jsonwebtoken": "^9.0.2",
         "@groupomania/shared": "file:../shared",
         "fastify": "^5.4.0",
         "@fastify/cors": "^11.0.1",
@@ -68,7 +70,7 @@
         "cross-env": "^10.0.0"
     },
     "engines": {
-        "node": ">=18.0.0",
+        "node": ">=20.0.0",
         "npm": ">=8.0.0"
     }
 }
