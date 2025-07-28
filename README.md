@@ -19,7 +19,7 @@ Frontend (React) ←→ API Gateway ←→ User Service
 ## Démarrage rapide
 
 ### Prérequis
-- Node.js ≥ 18.0.0
+- Node.js ≥ 20.0.0
 - npm ≥ 8.0.0
 - PostgreSQL
 
