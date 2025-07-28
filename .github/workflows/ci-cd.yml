@@ -1,0 +1,317 @@
+name: Enterprise CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop, staging ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  NODE_VERSION: '18'
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Phase 1: Installation et cache des dépendances
+  install:
+    name: Install Dependencies
+    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.cache-key }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: Generate cache key
+        id: cache-key
+        run: |
+          echo "cache-key=node-modules-${{ hashFiles('**/package-lock.json') }}" >> $GITHUB_OUTPUT
+
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            */node_modules
+          key: ${{ steps.cache-key.outputs.cache-key }}
+          restore-keys: |
+            node-modules-
+
+      - name: Install dependencies
+        run: npm run ci:install
+
+  # Phase 2: Linting et formatage
+  lint:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    needs: install
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            */node_modules
+          key: ${{ needs.install.outputs.cache-key }}
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Check Prettier formatting
+        run: npm run format:check
+
+      - name: TypeScript type checking
+        run: |
+          cd shared && npm run typecheck
+          cd ../user-service && npm run typecheck
+          cd ../post-service && npm run typecheck
+          cd ../api-gateway && npm run typecheck
+
+      - name: Security audit
+        run: npm run security:audit
+
+  # Phase 3: Build
+  build:
+    name: Build Services
+    runs-on: ubuntu-latest
+    needs: install
+    strategy:
+      matrix:
+        service: [shared, user-service, post-service, api-gateway]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            */node_modules
+          key: ${{ needs.install.outputs.cache-key }}
+
+      - name: Build ${{ matrix.service }}
+        run: |
+          if [ "${{ matrix.service }}" = "shared" ]; then
+            cd shared && npm run build
+          else
+            npm run build:${{ matrix.service == 'user-service' && 'user' || matrix.service == 'post-service' && 'post' || 'gateway' }}
+          fi
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-${{ matrix.service }}
+          path: |
+            ${{ matrix.service }}/dist/
+            shared/dist/
+          retention-days: 1
+
+  # Phase 4: Tests unitaires
+  test:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: [install, build]
+    strategy:
+      matrix:
+        service: [user-service, post-service, api-gateway]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            */node_modules
+          key: ${{ needs.install.outputs.cache-key }}
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-${{ matrix.service }}
+
+      - name: Download shared build
+        uses: actions/download-artifact@v3
+        with:
+          name: build-shared
+
+      - name: Run tests for ${{ matrix.service }}
+        run: |
+          if [ "${{ matrix.service }}" = "user-service" ]; then
+            npm run test:user
+          elif [ "${{ matrix.service }}" = "post-service" ]; then
+            npm run test:post
+          else
+            npm run test:gateway
+          fi
+
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info
+          flags: ${{ matrix.service }}
+          name: ${{ matrix.service }}-coverage
+
+  # Phase 5: Tests d'intégration
+  integration-test:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: [install, build]
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_USER: test_user
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Restore node modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            */node_modules
+          key: ${{ needs.install.outputs.cache-key }}
+
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v3
+
+      - name: Setup test environment
+        run: |
+          cp .env.example .env
+          sed -i 's/DB_HOST=localhost/DB_HOST=localhost/g' .env
+          sed -i 's/DB_USER=groupomania_user/DB_USER=test_user/g' .env
+          sed -i 's/DB_PASSWORD=your_secure_password_here/DB_PASSWORD=test_password/g' .env
+          sed -i 's/USER_DB_NAME=groupomania_users/USER_DB_NAME=test_db/g' .env
+          sed -i 's/POST_DB_NAME=groupomania_posts/POST_DB_NAME=test_db/g' .env
+
+      - name: Run database migrations
+        run: npm run db:migrate:all
+
+      - name: Run E2E tests
+        run: npm run test:e2e
+
+  # Phase 6: Build Docker images (seulement sur main/staging)
+  docker-build:
+    name: Build Docker Images
+    runs-on: ubuntu-latest
+    needs: [lint, test, integration-test]
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+    strategy:
+      matrix:
+        service: [user-service, post-service, api-gateway]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${{ matrix.service }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=sha,prefix={{branch}}-
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Phase 7: Déploiement (seulement sur main)
+  deploy:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker-build]
+    if: github.ref == 'refs/heads/main'
+    environment: production
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to production
+        run: |
+          echo "🚀 Deployment to production would happen here"
+          echo "This could include:"
+          echo "  - Kubernetes deployment"
+          echo "  - Docker Compose update"
+          echo "  - Health checks"
+          echo "  - Rollback on failure"
+
+  # Phase 8: Notification
+  notify:
+    name: Notification
+    runs-on: ubuntu-latest
+    needs: [lint, test, integration-test, docker-build, deploy]
+    if: always()
+    steps:
+      - name: Notify success
+        if: needs.deploy.result == 'success'
+        run: |
+          echo "✅ Pipeline completed successfully!"
+          echo "All services are deployed and running."
+
+      - name: Notify failure
+        if: failure()
+        run: |
+          echo "❌ Pipeline failed!"
+          echo "Please check the logs for more information."

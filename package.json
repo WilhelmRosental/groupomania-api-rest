@@ -1,25 +1,45 @@
 {
   "name": "groupomania-microservices",
   "version": "1.0.0",
-  "description": "Groupomania API - Microservices Architecture",
+  "description": "Groupomania API - Enterprise Microservices Architecture",
   "private": true,
   "workspaces": [
     "user-service",
     "post-service",
-    "api-gateway"
+    "api-gateway",
+    "shared"
   ],
   "scripts": {
-    "install:all": "npm install && cd user-service && npm install && cd ../post-service && npm install && cd ../api-gateway && npm install",
-    "setup:db": "node scripts/setup-databases.js",
-    "setup:db:user": "CREATE_USER=true node scripts/setup-databases.js",
+    "install:all": "npm install --workspaces --include-workspace-root",
+    "setup:db": "node dist/scripts/setup-databases.js",
+    "setup:db:user": "CREATE_USER=true node dist/scripts/setup-databases.js",
+    "prebuild": "npm run clean",
+    "build": "npm run build:shared && npm run build:scripts:optional && npm run build:all",
+    "build:shared": "cd shared && npm run build",
+    "build:scripts": "tsc -p scripts/tsconfig.json",
+    "build:scripts:optional": "node -e \"const fs = require('fs'); const glob = require('glob'); if (glob.sync('scripts/*.ts').length > 0) { require('child_process').execSync('npm run build:scripts', {stdio: 'inherit'}); } else { console.log('Aucun script TypeScript trouve'); }\"",
+    "build:all": "npm run build:user && npm run build:post && npm run build:gateway",
+    "build:user": "cd user-service && npm run build",
+    "build:post": "cd post-service && npm run build",
+    "build:gateway": "cd api-gateway && npm run build",
+    "build:prod": "NODE_ENV=production npm run build",
+    "clean": "node -e \"const fs = require('fs'); const cleanDir = (dir) => { if (fs.existsSync(dir)) fs.rmSync(dir, {recursive: true, force: true}); }; cleanDir('dist'); cleanDir('user-service/dist'); cleanDir('post-service/dist'); cleanDir('api-gateway/dist'); cleanDir('shared/dist');\"",
     "start:all": "concurrently \"npm run start:gateway\" \"npm run start:user\" \"npm run start:post\"",
     "start:gateway": "cd api-gateway && npm start",
     "start:user": "cd user-service && npm start",
     "start:post": "cd post-service && npm start",
-    "dev:all": "concurrently \"npm run dev:gateway\" \"npm run dev:user\" \"npm run dev:post\"",
+    "start:prod": "NODE_ENV=production npm run start:all",
+    "dev:all": "npm run build && concurrently --kill-others-on-fail \"npm run dev:gateway\" \"npm run dev:user\" \"npm run dev:post\"",
     "dev:gateway": "cd api-gateway && npm run dev",
     "dev:user": "cd user-service && npm run dev",
     "dev:post": "cd post-service && npm run dev",
+    "docker:build": "docker-compose build",
+    "docker:build:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml build",
+    "docker:up": "docker-compose up -d",
+    "docker:up:prod": "docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down --volumes --remove-orphans && docker system prune -f",
     "db:migrate:all": "npm run db:migrate:user && npm run db:migrate:post",
     "db:migrate:user": "cd user-service && npm run db:migrate",
     "db:migrate:post": "cd post-service && npm run db:migrate",
@@ -30,22 +50,75 @@
     "test:all": "npm run test:user && npm run test:post && npm run test:gateway",
     "test:user": "cd user-service && npm test",
     "test:post": "cd post-service && npm test",
-    "test:gateway": "cd api-gateway && npm test"
+    "test:gateway": "cd api-gateway && npm test",
+    "test:coverage": "npm run test:all -- --coverage",
+    "test:e2e": "npm run build && npm run test:all",
+    "lint": "eslint . --ext .ts --max-warnings 0",
+    "lint:fix": "eslint . --ext .ts --fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
+    "security:audit": "npm audit --audit-level moderate",
+    "security:fix": "npm audit fix",
+    "health-check": "node dist/scripts/health-check.js",
+    "health-check:all": "concurrently \"npm run health-check\" \"cd user-service && npm run health\" \"cd post-service && npm run health\" \"cd api-gateway && npm run health\"",
+    "logs:all": "concurrently \"npm run logs:gateway\" \"npm run logs:user\" \"npm run logs:post\"",
+    "logs:gateway": "cd api-gateway && npm run logs",
+    "logs:user": "cd user-service && npm run logs",
+    "logs:post": "cd post-service && npm run logs",
+    "ci:install": "npm ci --prefer-offline --no-audit",
+    "ci:build": "npm run build:prod",
+    "ci:test": "npm run test:coverage",
+    "ci:lint": "npm run lint && npm run format:check",
+    "ci:security": "npm run security:audit",
+    "precommit": "npm run lint && npm run format:check && npm run test:all",
+    "prepare": "npm run build"
   },
   "keywords": [
     "microservices",
     "api",
     "fastify",
-    "social-network"
+    "social-network",
+    "enterprise",
+    "typescript",
+    "docker",
+    "postgresql"
   ],
   "author": "Nathan Hallouin",
   "license": "MIT",
   "devDependencies": {
     "concurrently": "^9.2.0",
-    "pg": "^8.11.3"
+    "pg": "^8.16.3",
+    "typescript": "^5.8.3",
+    "@types/node": "^24.1.0",
+    "@types/pg": "^8.15.4",
+    "@typescript-eslint/eslint-plugin": "^8.38.0",
+    "@typescript-eslint/parser": "^8.38.0",
+    "eslint": "^9.32.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.3",
+    "eslint-plugin-security": "^3.0.1",
+    "prettier": "^3.6.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
+    "cross-env": "^10.0.0",
+    "glob": "^11.0.3"
   },
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged"
+    }
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
   }
 }

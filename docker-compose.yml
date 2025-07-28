@@ -7,66 +7,119 @@ services:
     environment:
       POSTGRES_DB: groupomania
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
     ports:
-      - "5432:5432"
+      - "${DB_PORT:-5432}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
     networks:
       - groupomania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d groupomania"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
   # Service utilisateurs
   user-service:
-    build: ./user-service
+    build: 
+      context: ./user-service
+      dockerfile: Dockerfile
     ports:
-      - "3001:3001"
+      - "${USER_SERVICE_PORT:-3001}:3001"
     environment:
+      - NODE_ENV=${NODE_ENV:-production}
       - USER_SERVICE_PORT=3001
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=groupomania
       - DB_USER=postgres
-      - DB_PASS=password
+      - DB_PASS=${DB_PASSWORD:-password}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     networks:
       - groupomania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Service publications
   post-service:
-    build: ./post-service
+    build: 
+      context: ./post-service
+      dockerfile: Dockerfile
     ports:
-      - "3002:3002"
+      - "${POST_SERVICE_PORT:-3002}:3002"
     environment:
+      - NODE_ENV=${NODE_ENV:-production}
       - POST_SERVICE_PORT=3002
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=groupomania
       - DB_USER=postgres
-      - DB_PASS=password
+      - DB_PASS=${DB_PASSWORD:-password}
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     volumes:
       - ./post-service/images:/app/images
+      - post_uploads:/app/uploads
     networks:
       - groupomania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3002/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # API Gateway
   api-gateway:
-    build: ./api-gateway
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "${API_GATEWAY_PORT:-3000}:3000"
     environment:
+      - NODE_ENV=${NODE_ENV:-production}
       - API_GATEWAY_PORT=3000
+      - USER_SERVICE_URL=http://user-service:3001
+      - POST_SERVICE_URL=http://post-service:3002
     depends_on:
-      - user-service
-      - post-service
+      user-service:
+        condition: service_healthy
+      post-service:
+        condition: service_healthy
     networks:
       - groupomania-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
 volumes:
   postgres_data:
+    driver: local
+  post_uploads:
+    driver: local
 
 networks:
   groupomania-network:
     driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.20.0.0/16
