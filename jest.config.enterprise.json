@@ -49,6 +49,12 @@
     "moduleNameMapping": {
         "^@groupomania/shared$": "<rootDir>/shared/src"
     },
+    "testPathIgnorePatterns": [
+        "\\.d\\.ts$",
+        "/dist/",
+        "<rootDir>/dist/",
+        "**/dist/**"
+    ],
     "testTimeout": 10000,
     "verbose": true,
     "forceExit": true,
