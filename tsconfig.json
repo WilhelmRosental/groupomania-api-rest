@@ -2,7 +2,9 @@
   "compilerOptions": {
     "target": "ES2022",
     "module": "commonjs",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "outDir": "./dist",
     "rootDir": "./",
     "strict": true,
@@ -18,9 +20,19 @@
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
     "paths": {
-      "@shared/*": ["./shared/*"]
+      "@shared/*": [
+        "./shared/*"
+      ]
     }
   },
-  "exclude": ["**/*.test.ts", "**/*.test.d.ts", "node_modules", "dist", "**/*.js", "**/*.d.ts"],
-  "include": ["**/*.ts", "shared/**/*.ts"]
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.js",
+    "**/*.d.ts"
+  ],
+  "include": [
+    "**/*.ts",
+    "shared/**/*.ts"
+  ]
 }

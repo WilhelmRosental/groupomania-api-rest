@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 // Configuration schema pour validation
 const configSchema = z.object({
-  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  NODE_ENV: z.enum(['development', 'production']).default('development'),
   LOG_LEVEL: z.enum(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).default('info'),
 
   // Database
@@ -55,7 +55,6 @@ export const config = validateConfig();
 // Utilitaires de configuration
 export const isDevelopment = (): boolean => config.NODE_ENV === 'development';
 export const isProduction = (): boolean => config.NODE_ENV === 'production';
-export const isTest = (): boolean => config.NODE_ENV === 'test';
 
 // Configuration de base de données
 export const getDatabaseUrl = (): string =>

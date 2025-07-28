@@ -7,13 +7,14 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["src/**/*"],
+  "include": [
+    "src/**/*"
+  ],
   "exclude": [
     "**/*.test.ts",
     "**/*.test.d.ts",
     "node_modules",
     "dist",
-    "**/*.test.ts",
     "**/*.spec.ts"
   ]
 }

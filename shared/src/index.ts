@@ -4,7 +4,6 @@ export {
   validateConfig,
   isDevelopment,
   isProduction,
-  isTest,
   getDatabaseUrl,
   getLoggerConfig,
 } from './config';
