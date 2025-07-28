@@ -19,6 +19,7 @@ interface UserController {
   login(request: FastifyRequest<{ Body: UserLoginBody }>, reply: FastifyReply): Promise<void>;
   getProfile(request: AuthenticatedRequest, reply: FastifyReply): Promise<void>;
   updateProfile(request: AuthenticatedRequest & { Body: UserUpdateBody }, reply: FastifyReply): Promise<void>;
+  updatePassword(request: AuthenticatedRequest & { Body: { password: string } }, reply: FastifyReply): Promise<void>;
   deleteAccount(request: AuthenticatedRequest, reply: FastifyReply): Promise<void>;
   getAllUsers(request: AuthenticatedRequest, reply: FastifyReply): Promise<void>;
 }
@@ -196,6 +197,40 @@ export const userController: UserController = {
       reply.code(500).send({
         success: false,
         message: 'Erreur lors de la mise à jour du profil',
+        error: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  },
+
+  // Update user password
+  async updatePassword(request: AuthenticatedRequest & { Body: { password: string } }, reply: FastifyReply): Promise<void> {
+    try {
+      const requestWithBody = request as AuthenticatedRequest & { body: { password: string } };
+      const { password } = requestWithBody.body;
+      const userId = request.user.id;
+
+      const user = await User.findByPk(userId);
+      if (!user) {
+        reply.code(404).send({
+          success: false,
+          message: 'Utilisateur non trouvé'
+        });
+        return;
+      }
+
+      // Hash new password
+      const hashedPassword = await argon2.hash(password);
+
+      await user.update({ password: hashedPassword });
+
+      reply.send({
+        success: true,
+        message: 'Mot de passe mis à jour avec succès'
+      });
+    } catch (error) {
+      reply.code(500).send({
+        success: false,
+        message: 'Erreur lors de la mise à jour du mot de passe',
         error: error instanceof Error ? error.message : 'Unknown error'
       });
     }

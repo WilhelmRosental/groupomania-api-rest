@@ -33,7 +33,6 @@ async function buildUserApp(): Promise<FastifyInstance> {
   // Custom validation hook
   app.addHook('preHandler', (request: FastifyRequest, reply: FastifyReply, done: () => void): void => {
     // Import dynamically to avoid circular dependencies
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { sanitizeRequest } = require('../../shared/middleware/validation') as { sanitizeRequest: (req: FastifyRequest, res: FastifyReply, callback: () => void) => void };
     sanitizeRequest(request, reply, done);
   });

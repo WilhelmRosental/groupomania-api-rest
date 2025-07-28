@@ -3,7 +3,7 @@
  * Handles post CRUD operations and file uploads
  */
 
-import fastify, { FastifyInstance } from 'fastify';
+import fastify, { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import path from 'path';
 import postRoutes from './routes/post';
 
@@ -42,12 +42,26 @@ async function buildPostApp(): Promise<FastifyInstance> {
 
   // Custom validation hook
   app.addHook('preHandler', (request, reply, done) => {
-    const { sanitizeRequest } = require('../../shared/middleware/validation') as { sanitizeRequest: (req: any, rep: any, callback: () => void) => void };
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { sanitizeRequest } = require('../../shared/middleware/validation');
     sanitizeRequest(request, reply, done);
   });
 
   // Register post routes
   await app.register(postRoutes, { prefix: '/api/posts' });
+
+  // Error handler
+  app.setErrorHandler((error, request, reply) => {
+    request.log.error(error);
+
+    const statusCode = error.statusCode || 500;
+    const message = statusCode === 500
+      ? 'Internal Server Error'
+      : error.message;
+
+    // Send error response
+    reply.status(statusCode).send({ error: message });
+  });
 
   return app;
 }

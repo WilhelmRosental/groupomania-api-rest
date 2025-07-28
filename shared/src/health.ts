@@ -35,7 +35,7 @@ export class HealthChecker {
     for (const [name, checker] of this.dependencies) {
       try {
         const result = await checker();
-        if (typeof name === 'string') {
+        if (typeof name === 'string' && name) {
           dependencyResults[name] = result;
         }
         
@@ -43,7 +43,7 @@ export class HealthChecker {
           overallStatus = 'degraded';
         }
       } catch (error) {
-        if (typeof name === 'string') {
+        if (typeof name === 'string' && name) {
           dependencyResults[name] = {
             status: 'unhealthy',
             error: error instanceof Error ? error.message : 'Unknown error'

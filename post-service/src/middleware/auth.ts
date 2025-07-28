@@ -17,7 +17,7 @@ export const auth = async (request: FastifyRequest, reply: FastifyReply): Promis
   try {
     const authHeader = request.headers.authorization;
     
-    if (!authHeader?.startsWith('Bearer ')) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
       await reply.status(401).send({
         error: 'Access denied. No token provided or invalid format.'
       });

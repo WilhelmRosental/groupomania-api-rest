@@ -33,7 +33,7 @@ export const postController = {
       const validatedBody = createPostSchema.parse(request.body);
       const userId = request.userId;
 
-      if (typeof userId !== 'string' || userId === '') {
+      if (!userId || typeof userId !== 'string' || userId === '') {
         return reply.status(401).send({
           success: false,
           message: 'User not authenticated'
@@ -53,7 +53,7 @@ export const postController = {
         data: post
       });
     } catch (error) {
-      console.error('Create post error:', error);
+      console.error('Error creating post:', error);
       reply.status(500).send({
         success: false,
         message: 'Erreur lors de la création du post',
@@ -90,7 +90,7 @@ export const postController = {
         }
       });
     } catch (error) {
-      console.error('Get all posts error:', error);
+      console.error('Error fetching posts:', error);
       reply.status(500).send({
         success: false,
         message: 'Erreur lors de la récupération des posts',
@@ -179,7 +179,7 @@ export const postController = {
       const userId = request.userId;
       const isAdmin = request.isAdmin;
 
-      if (typeof userId !== 'string') {
+      if (!userId || typeof userId !== 'string') {
         return reply.status(401).send({
           success: false,
           message: 'User not authenticated'
@@ -210,7 +210,7 @@ export const postController = {
         message: 'Post supprimé avec succès'
       });
     } catch (error) {
-      console.error('Delete post error:', error);
+      console.error('Error deleting post:', error);
       reply.status(500).send({
         success: false,
         message: 'Erreur lors de la suppression du post',
