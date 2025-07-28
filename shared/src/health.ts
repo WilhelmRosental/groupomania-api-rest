@@ -38,7 +38,12 @@ export class HealthChecker {
       try {
         const result = await checker();
         if (typeof name === 'string' && name && !Object.prototype.hasOwnProperty.call(dependencyResults, name)) {
-          dependencyResults[name] = result;
+          Object.defineProperty(dependencyResults, name, {
+            value: result,
+            enumerable: true,
+            configurable: true,
+            writable: true
+          });
         }
         
         if (result.status === 'unhealthy') {
@@ -46,10 +51,15 @@ export class HealthChecker {
         }
       } catch (error) {
         if (typeof name === 'string' && name && !Object.prototype.hasOwnProperty.call(dependencyResults, name)) {
-          dependencyResults[name] = {
-            status: 'unhealthy',
-            error: error instanceof Error ? error.message : 'Unknown error'
-          };
+          Object.defineProperty(dependencyResults, name, {
+            value: {
+              status: 'unhealthy',
+              error: error instanceof Error ? error.message : 'Unknown error'
+            },
+            enumerable: true,
+            configurable: true,
+            writable: true
+          });
         }
         overallStatus = 'degraded';
       }
