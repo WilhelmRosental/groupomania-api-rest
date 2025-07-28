@@ -2,18 +2,16 @@
  * Simplified validation middleware for microservices
  */
 
-import type { FastifyRequest, FastifyReply } from 'fastify';
-
 interface ValidationSchemas {
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export function createValidationMiddleware(_schemas: ValidationSchemas) {
-  return async (request: any, reply: any): Promise<void> => {
+  return (request: Record<string, unknown>, reply: { status: (code: number) => { send: (body: unknown) => void } }): void => {
     try {
-      if (request.body && typeof request.body === 'object') {
-        const sanitizedBody = JSON.parse(JSON.stringify(request.body));
-        request.body = sanitizedBody;
+      if (typeof request === 'object' && request !== null && 'body' in request && typeof (request as { body?: unknown }).body === 'object' && (request as { body?: unknown }).body !== null) {
+        const sanitizedBody = JSON.parse(JSON.stringify((request as { body: unknown }).body));
+        (request as { body: unknown }).body = sanitizedBody;
       }
     } catch (error) {
       // Silent fail for validation
@@ -29,14 +27,14 @@ export const commonSchemas = {
 
 export function sanitizeRequest(req: Record<string, unknown>): Record<string, unknown> {
   // Basic request sanitization
-  if (req.body && typeof req.body === 'object') {
+  if (typeof req === 'object' && req !== null && 'body' in req && typeof (req as { body?: unknown }).body === 'object' && (req as { body?: unknown }).body !== null) {
     const sanitizedBody = Object.fromEntries(
-      Object.entries(req.body).map(([key, value]) => [
+      Object.entries((req as { body: Record<string, unknown> }).body).map(([key, value]) => [
         key,
         typeof value === 'string' ? value.trim() : value
       ])
     );
-    req.body = sanitizedBody;
+    (req as { body: Record<string, unknown> }).body = sanitizedBody;
   }
   
   return req;
